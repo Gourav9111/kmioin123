@@ -158,6 +158,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin routes
+  app.get("/api/admin/check", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const isAdmin = await storage.isUserAdmin(user.claims.sub);
+      res.json({ isAdmin });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to check admin status" });
+    }
+  });
+
+  app.post("/api/admin/promote", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { userId } = req.body;
+      
+      // Check if current user is admin
+      const isCurrentUserAdmin = await storage.isUserAdmin(user.claims.sub);
+      if (!isCurrentUserAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      await storage.promoteToAdmin(userId);
+      res.json({ message: "User promoted to admin" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to promote user" });
+    }
+  });
+
+  app.get("/api/admin/stats", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const isAdmin = await storage.isUserAdmin(user.claims.sub);
+      if (!isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const stats = await storage.getAdminStats();
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch admin stats" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

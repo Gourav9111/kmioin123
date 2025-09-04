@@ -1,15 +1,36 @@
 
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function AdminPanel() {
   const { user, isAuthenticated } = useAuth();
 
-  // Check if user is admin (you can customize this logic)
-  const isAdmin = user?.email?.includes('admin') || user?.firstName === 'Admin';
+  // Check admin status from API
+  const { data: adminCheck, isLoading: adminCheckLoading } = useQuery({
+    queryKey: ["/api/admin/check"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/admin/check");
+      return response.json();
+    },
+    enabled: isAuthenticated,
+  });
+
+  // Get admin stats
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ["/api/admin/stats"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/admin/stats");
+      return response.json();
+    },
+    enabled: isAuthenticated && adminCheck?.isAdmin,
+  });
+
+  const isAdmin = adminCheck?.isAdmin;
 
   if (!isAuthenticated) {
     return (
@@ -23,12 +44,29 @@ export default function AdminPanel() {
     );
   }
 
+  if (adminCheckLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex justify-center">
+              <div className="animate-spin w-6 h-6 border-4 border-primary border-t-transparent rounded-full" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (!isAdmin) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="p-6">
             <p>Access denied. Admin privileges required.</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Contact an existing admin to grant you access.
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -57,7 +95,9 @@ export default function AdminPanel() {
                 <CardTitle className="text-sm font-medium">Total Products</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">--</div>
+                <div className="text-2xl font-bold">
+                  {statsLoading ? "--" : stats?.totalProducts || 0}
+                </div>
               </CardContent>
             </Card>
             <Card>
@@ -65,7 +105,9 @@ export default function AdminPanel() {
                 <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">--</div>
+                <div className="text-2xl font-bold">
+                  {statsLoading ? "--" : stats?.totalOrders || 0}
+                </div>
               </CardContent>
             </Card>
             <Card>
@@ -73,7 +115,9 @@ export default function AdminPanel() {
                 <CardTitle className="text-sm font-medium">Total Users</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">--</div>
+                <div className="text-2xl font-bold">
+                  {statsLoading ? "--" : stats?.totalUsers || 0}
+                </div>
               </CardContent>
             </Card>
             <Card>
@@ -81,7 +125,9 @@ export default function AdminPanel() {
                 <CardTitle className="text-sm font-medium">Revenue</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">$--</div>
+                <div className="text-2xl font-bold">
+                  ₹{statsLoading ? "--" : stats?.totalRevenue || 0}
+                </div>
               </CardContent>
             </Card>
           </div>

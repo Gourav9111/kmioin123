@@ -1,4 +1,4 @@
-import { users, categories, products, cartItems, wishlistItems, type User, type InsertUser, type Category, type InsertCategory, type Product, type InsertProduct, type CartItem, type InsertCartItem, type WishlistItem, type InsertWishlistItem } from "@shared/schema";
+import { users, categories, products, cartItems, wishlistItems, adminUsers, type User, type InsertUser, type Category, type InsertCategory, type Product, type InsertProduct, type CartItem, type InsertCartItem, type WishlistItem, type InsertWishlistItem } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, ilike, sql } from "drizzle-orm";
 
@@ -33,6 +33,11 @@ export interface IStorage {
   getWishlistItems(userId: string): Promise<(WishlistItem & { product: Product })[]>;
   addToWishlist(wishlistItem: InsertWishlistItem): Promise<WishlistItem>;
   removeFromWishlist(userId: string, productId: string): Promise<void>;
+
+  // Admin methods
+  isUserAdmin(userId: string): Promise<boolean>;
+  promoteToAdmin(userId: string): Promise<void>;
+  getAdminStats(): Promise<{ totalUsers: number; totalProducts: number; totalOrders: number; totalRevenue: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -222,12 +227,45 @@ export class DatabaseStorage implements IStorage {
   async removeFromWishlist(userId: string, productId: string): Promise<void> {
     await db
       .delete(wishlistItems)
-      .where(
-        and(
-          eq(wishlistItems.userId, userId),
-          eq(wishlistItems.productId, productId)
-        )
-      );
+      .where(and(eq(wishlistItems.userId, userId), eq(wishlistItems.productId, productId)));
+  }
+
+  async isUserAdmin(userId: string): Promise<boolean> {
+    const [adminUser] = await db
+      .select()
+      .from(adminUsers)
+      .where(and(eq(adminUsers.userId, userId), eq(adminUsers.isActive, true)));
+    return !!adminUser;
+  }
+
+  async promoteToAdmin(userId: string): Promise<void> {
+    await db
+      .insert(adminUsers)
+      .values({ userId })
+      .onConflictDoUpdate({
+        target: adminUsers.userId,
+        set: { isActive: true }
+      });
+  }
+
+  async getAdminStats(): Promise<{ totalUsers: number; totalProducts: number; totalOrders: number; totalRevenue: number }> {
+    const [userCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(users);
+
+    const [productCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(products)
+      .where(eq(products.isActive, true));
+
+    // For now, return mock data for orders and revenue
+    // You can implement actual order tracking later
+    return {
+      totalUsers: userCount.count || 0,
+      totalProducts: productCount.count || 0,
+      totalOrders: 0,
+      totalRevenue: 0
+    };
   }
 }
 
