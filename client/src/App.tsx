@@ -13,6 +13,7 @@ import NotFound from "@/pages/not-found";
 import AdminPanel from "@/pages/admin";
 import LoginPage from "@/pages/login";
 import RegisterPage from "@/pages/register";
+import AdminSignup from "@/pages/admin-signup";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
         <Route path="/login" component={LoginPage} />
         <Route path="/register" component={RegisterPage} />
         <Route path="/admin" component={AdminPanel} />
+        <Route path="/admin-signup" component={AdminSignup} />
         <Route component={NotFound} />
       </Switch>
       <Toaster />

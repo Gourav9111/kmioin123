@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
@@ -57,7 +56,7 @@ export default function LoginPage() {
                 {error}
               </div>
             )}
-            
+
             <div>
               <Label htmlFor="email">Email</Label>
               <Input

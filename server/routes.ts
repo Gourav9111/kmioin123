@@ -89,6 +89,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/admin/create", async (req, res) => {
+    try {
+      const { firstName, lastName, email, password, adminCode } = req.body;
+      
+      // Check admin creation code (you can change this to your preferred code)
+      const ADMIN_CREATION_CODE = process.env.ADMIN_CREATION_CODE || "ADMIN2024";
+      if (adminCode !== ADMIN_CREATION_CODE) {
+        return res.status(401).json({ message: "Invalid admin creation code" });
+      }
+
+      // Validate user data
+      const userData = registerSchema.parse({
+        firstName,
+        lastName,
+        email,
+        password,
+        mobileNumber: "0000000000", // Default value for admin
+      });
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(userData.email);
+      if (existingUser) {
+        return res.status(400).json({ message: "User already exists" });
+      }
+
+      // Hash password
+      const hashedPassword = await hashPassword(userData.password);
+
+      // Create user
+      const user = await storage.createUser({
+        ...userData,
+        password: hashedPassword,
+      });
+
+      // Promote to admin immediately
+      await storage.promoteToAdmin(user.id);
+
+      res.status(201).json({
+        message: "Admin account created successfully",
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          mobileNumber: user.mobileNumber,
+        },
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Admin creation error:", error);
+      res.status(500).json({ message: "Failed to create admin account" });
+    }
+  });
+
   // Get user info
   app.get("/api/user", authenticateToken, async (req, res) => {
     const user = (req as any).user;

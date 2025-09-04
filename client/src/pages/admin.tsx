@@ -6,9 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
 
 export default function AdminPanel() {
   const { user, isAuthenticated } = useAuth();
+  const [, navigate] = useLocation();
 
   // Check admin status from API
   const { data: adminCheck, isLoading: adminCheckLoading } = useQuery({
@@ -76,8 +78,15 @@ export default function AdminPanel() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">Admin Panel</h1>
-        <p className="text-muted-foreground">Welcome, {user?.firstName}</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Admin Panel</h1>
+            <p className="text-muted-foreground">Welcome, {user?.firstName}</p>
+          </div>
+          <Button onClick={() => navigate("/admin-signup")} variant="outline">
+            Create New Admin
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
