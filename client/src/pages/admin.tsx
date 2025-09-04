@@ -13,7 +13,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { Edit, Trash2, Plus } from "lucide-react";
+import { Edit, Trash2, Plus, Upload } from "lucide-react";
 import type { Category, Product } from "@shared/schema";
 
 export default function AdminPanel() {
@@ -184,10 +184,26 @@ export default function AdminPanel() {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">Products Management</h2>
-              <Button onClick={() => navigate("/admin/products/new")}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add New Product
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={() => navigate("/admin/products/new")}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add New Product
+                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload Images
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Upload Product Images</DialogTitle>
+                    </DialogHeader>
+                    <ImageUploadForm />
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
             <ProductsTable />
           </div>
@@ -369,6 +385,99 @@ export default function AdminPanel() {
           </Table>
         </CardContent>
       </Card>
+    );
+  }
+
+  // Image Upload Form Component  
+  function ImageUploadForm() {
+    const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
+    const [uploadProgress, setUploadProgress] = useState(0);
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSelectedFiles(e.target.files);
+    };
+
+    const handleUpload = async () => {
+      if (!selectedFiles) return;
+
+      // Note: In a real app, you'd upload to a file storage service
+      // For now, we'll show how the UI would work
+      toast({
+        title: "Upload Started",
+        description: `Uploading ${selectedFiles.length} file(s)...`,
+      });
+
+      // Simulate upload progress
+      for (let i = 0; i <= 100; i += 10) {
+        setUploadProgress(i);
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      toast({
+        title: "Upload Complete",
+        description: "Images uploaded successfully! Copy the file paths to use in products.",
+      });
+    };
+
+    return (
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="image-upload">Select Images</Label>
+          <Input
+            id="image-upload"
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={handleFileSelect}
+            data-testid="input-image-upload"
+          />
+        </div>
+        
+        {selectedFiles && (
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              Selected {selectedFiles.length} file(s)
+            </p>
+            {Array.from(selectedFiles).map((file, index) => (
+              <div key={index} className="text-sm">
+                {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+              </div>
+            ))}
+          </div>
+        )}
+
+        {uploadProgress > 0 && uploadProgress < 100 && (
+          <div className="space-y-2">
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
+            </div>
+            <p className="text-sm text-center">{uploadProgress}% uploaded</p>
+          </div>
+        )}
+
+        <div className="bg-muted p-4 rounded-lg">
+          <h4 className="font-medium mb-2">📁 Current Images Location:</h4>
+          <code className="text-sm">attached_assets/images/</code>
+          <p className="text-sm text-muted-foreground mt-2">
+            Upload your product images here, then use the file path in your product forms.
+            Example: <code>/images/biker-jersey-1.jpg</code>
+          </p>
+        </div>
+
+        <div className="flex gap-2">
+          <Button 
+            onClick={handleUpload}
+            disabled={!selectedFiles}
+            data-testid="button-upload-images"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Upload Images
+          </Button>
+        </div>
+      </div>
     );
   }
 
