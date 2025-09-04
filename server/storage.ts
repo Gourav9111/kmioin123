@@ -37,7 +37,8 @@ export interface IStorage {
   // Admin methods
   isUserAdmin(userId: string): Promise<boolean>;
   promoteToAdmin(userId: string): Promise<void>;
-  getAdminStats(): Promise<{ totalUsers: number; totalProducts: number; totalOrders: number; totalRevenue: number }>;
+  getAdminStats(): Promise<{ totalUsers: number; totalProducts: number; totalCategories: number }>;
+  getAllUsers(): Promise<User[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -248,24 +249,22 @@ export class DatabaseStorage implements IStorage {
       });
   }
 
-  async getAdminStats(): Promise<{ totalUsers: number; totalProducts: number; totalOrders: number; totalRevenue: number }> {
-    const [userCount] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(users);
+  async getAdminStats(): Promise<{ totalUsers: number; totalProducts: number; totalCategories: number }> {
+    const [totalUsers, totalProducts, totalCategories] = await Promise.all([
+      db.select({ count: sql<number>`count(*)` }).from(users),
+      db.select({ count: sql<number>`count(*)` }).from(products),
+      db.select({ count: sql<number>`count(*)` }).from(categories),
+    ]);
 
-    const [productCount] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(products)
-      .where(eq(products.isActive, true));
-
-    // For now, return mock data for orders and revenue
-    // You can implement actual order tracking later
     return {
-      totalUsers: userCount.count || 0,
-      totalProducts: productCount.count || 0,
-      totalOrders: 0,
-      totalRevenue: 0
+      totalUsers: totalUsers[0].count,
+      totalProducts: totalProducts[0].count,
+      totalCategories: totalCategories[0].count,
     };
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return db.select().from(users);
   }
 }
 
