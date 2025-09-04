@@ -6,6 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Search, ShoppingCart, Heart, Menu, User } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { apiRequest } from "@/lib/queryClient";
+import { loginWithReplit, logoutFromReplit } from "@/lib/authUtils";
 
 export default function Header() {
   const [location] = useLocation();
@@ -18,14 +27,6 @@ export default function Header() {
   });
 
   const cartItemCount = cartItems.reduce((total: number, item: any) => total + item.quantity, 0);
-
-  const handleLogin = () => {
-    window.location.href = "/api/login";
-  };
-
-  const handleLogout = () => {
-    window.location.href = "/api/logout";
-  };
 
   const navigation = [
     { name: "Home", href: "/" },
@@ -73,58 +74,28 @@ export default function Header() {
             </Button>
 
             {isAuthenticated ? (
-              <>
-                {/* Wishlist */}
-                <Link href="/wishlist">
-                  <Button variant="ghost" size="icon" data-testid="button-wishlist">
-                    <Heart className="h-5 w-5" />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <User className="h-4 w-4 mr-2" />
+                    {user?.firstName || 'User'}
                   </Button>
-                </Link>
-
-                {/* Cart */}
-                <Link href="/cart">
-                  <Button variant="ghost" size="icon" className="relative" data-testid="button-cart">
-                    <ShoppingCart className="h-5 w-5" />
-                    {cartItemCount > 0 && (
-                      <Badge
-                        variant="destructive"
-                        className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
-                        data-testid="badge-cart-count"
-                      >
-                        {cartItemCount}
-                      </Badge>
-                    )}
-                  </Button>
-                </Link>
-
-                {/* User Menu */}
-                <div className="flex items-center space-x-2">
-                  {user?.profileImageUrl ? (
-                    <img
-                      src={user.profileImageUrl}
-                      alt="Profile"
-                      className="w-8 h-8 rounded-full"
-                      data-testid="img-user-avatar"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
-                      <User className="h-4 w-4" />
-                    </div>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleLogout}
-                    className="text-sm"
-                    data-testid="button-logout"
-                  >
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link href="/wishlist">Wishlist</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/cart">Cart</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={logoutFromReplit}>
                     Logout
-                  </Button>
-                </div>
-              </>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
-              <Button onClick={handleLogin} data-testid="button-login">
-                Login
+              <Button variant="outline" size="sm" onClick={loginWithReplit}>
+                Login with Replit
               </Button>
             )}
 
@@ -157,8 +128,8 @@ export default function Header() {
                   ))}
 
                   {!isAuthenticated && (
-                    <Button onClick={handleLogin} className="mt-4" data-testid="button-mobile-login">
-                      Login
+                    <Button onClick={loginWithReplit} className="mt-4" data-testid="button-mobile-login">
+                      Login with Replit
                     </Button>
                   )}
                 </div>
