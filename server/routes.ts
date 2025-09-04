@@ -54,8 +54,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email, password } = loginSchema.parse(req.body);
 
-      // Find user
-      const user = await storage.getUserByEmail(email);
+      // Find user by email or username
+      let user = await storage.getUserByEmail(email);
+      if (!user) {
+        user = await storage.getUserByUsername(email); // Try username if email fails
+      }
       if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
       }

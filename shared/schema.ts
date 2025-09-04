@@ -151,7 +151,7 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 export const loginSchema = z.object({
-  email: z.string().email(),
+  email: z.string().min(1), // Accept either email or username
   password: z.string().min(6),
 });
 

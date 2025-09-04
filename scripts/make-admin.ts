@@ -4,8 +4,9 @@ import { hashPassword } from "../server/auth";
 
 async function makeAdmin() {
   try {
-    const email = "admin@example.com"; // Change this to your desired admin email
-    const password = "admin123456"; // Change this to your desired admin password
+    const email = "admin@admin.com"; // Admin email
+    const username = "admin"; // Admin username
+    const password = "admin123"; // Admin password
     
     // Check if user already exists
     let user = await storage.getUserByEmail(email);
@@ -19,8 +20,9 @@ async function makeAdmin() {
         email: email,
         password: hashedPassword,
         mobileNumber: "0000000000",
+        username: username,
       });
-      console.log("Admin user created");
+      console.log("Admin user created with username: admin");
     }
     
     // Promote to admin
