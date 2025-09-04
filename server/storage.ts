@@ -13,6 +13,9 @@ export interface IStorage {
   // Category methods
   getCategories(): Promise<Category[]>;
   getCategoryBySlug(slug: string): Promise<Category | undefined>;
+  createCategory(category: InsertCategory): Promise<Category>;
+  updateCategory(id: string, updates: Partial<Category>): Promise<Category | undefined>;
+  deleteCategory(id: string): Promise<void>;
 
   // Product methods
   getProducts(filters?: { 
@@ -23,6 +26,9 @@ export interface IStorage {
   }): Promise<Product[]>;
   getProductById(id: string): Promise<Product | undefined>;
   getProductBySlug(slug: string): Promise<Product | undefined>;
+  createProduct(product: InsertProduct): Promise<Product>;
+  updateProduct(id: string, updates: Partial<Product>): Promise<Product | undefined>;
+  deleteProduct(id: string): Promise<void>;
 
   // Cart methods
   getCartItems(userId: string): Promise<(CartItem & { product: Product })[]>;
@@ -92,6 +98,30 @@ export class DatabaseStorage implements IStorage {
     return category || undefined;
   }
 
+  async createCategory(categoryData: InsertCategory): Promise<Category> {
+    const [category] = await db
+      .insert(categories)
+      .values(categoryData)
+      .returning();
+    return category;
+  }
+
+  async updateCategory(id: string, updates: Partial<Category>): Promise<Category | undefined> {
+    const [category] = await db
+      .update(categories)
+      .set(updates)
+      .where(eq(categories.id, id))
+      .returning();
+    return category || undefined;
+  }
+
+  async deleteCategory(id: string): Promise<void> {
+    await db
+      .update(categories)
+      .set({ isActive: false })
+      .where(eq(categories.id, id));
+  }
+
   async getProducts(filters?: { 
     categoryId?: string; 
     search?: string; 
@@ -142,6 +172,30 @@ export class DatabaseStorage implements IStorage {
       .from(products)
       .where(and(eq(products.slug, slug), eq(products.isActive, true)));
     return product || undefined;
+  }
+
+  async createProduct(productData: InsertProduct): Promise<Product> {
+    const [product] = await db
+      .insert(products)
+      .values(productData)
+      .returning();
+    return product;
+  }
+
+  async updateProduct(id: string, updates: Partial<Product>): Promise<Product | undefined> {
+    const [product] = await db
+      .update(products)
+      .set(updates)
+      .where(eq(products.id, id))
+      .returning();
+    return product || undefined;
+  }
+
+  async deleteProduct(id: string): Promise<void> {
+    await db
+      .update(products)
+      .set({ isActive: false })
+      .where(eq(products.id, id));
   }
 
   async getCartItems(userId: string): Promise<(CartItem & { product: Product })[]> {

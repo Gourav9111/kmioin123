@@ -3,7 +3,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { authenticateToken, hashPassword, comparePassword, generateToken, validateEmail, validateMobileNumber, validatePassword } from "./auth";
-import { insertCartItemSchema, insertWishlistItemSchema, loginSchema, registerSchema } from "@shared/schema";
+import { insertCartItemSchema, insertWishlistItemSchema, insertCategorySchema, insertProductSchema, loginSchema, registerSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -177,6 +177,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin: Create category
+  app.post("/api/admin/categories", authenticateToken, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const isAdmin = await storage.isUserAdmin(user.id);
+      if (!isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const categoryData = insertCategorySchema.parse(req.body);
+      const category = await storage.createCategory(categoryData);
+      res.status(201).json(category);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create category" });
+    }
+  });
+
+  // Admin: Update category
+  app.put("/api/admin/categories/:id", authenticateToken, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const isAdmin = await storage.isUserAdmin(user.id);
+      if (!isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const categoryData = insertCategorySchema.parse(req.body);
+      const category = await storage.updateCategory(req.params.id, categoryData);
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      res.json(category);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update category" });
+    }
+  });
+
+  // Admin: Delete category
+  app.delete("/api/admin/categories/:id", authenticateToken, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const isAdmin = await storage.isUserAdmin(user.id);
+      if (!isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      await storage.deleteCategory(req.params.id);
+      res.json({ message: "Category deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete category" });
+    }
+  });
+
   // Products
   app.get("/api/products", async (req, res) => {
     try {
@@ -202,6 +261,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(product);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch product" });
+    }
+  });
+
+  // Get related products
+  app.get("/api/products/:slug/related", async (req, res) => {
+    try {
+      const product = await storage.getProductBySlug(req.params.slug);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      
+      const relatedProducts = await storage.getProducts({
+        categoryId: product.categoryId,
+        isActive: true,
+      });
+      
+      // Filter out the current product and limit to 3
+      const filtered = relatedProducts
+        .filter(p => p.id !== product.id)
+        .slice(0, 3);
+      
+      res.json(filtered);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch related products" });
+    }
+  });
+
+  // Admin: Create product
+  app.post("/api/admin/products", authenticateToken, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const isAdmin = await storage.isUserAdmin(user.id);
+      if (!isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const productData = insertProductSchema.parse(req.body);
+      const product = await storage.createProduct(productData);
+      res.status(201).json(product);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create product" });
+    }
+  });
+
+  // Admin: Update product
+  app.put("/api/admin/products/:id", authenticateToken, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const isAdmin = await storage.isUserAdmin(user.id);
+      if (!isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const productData = insertProductSchema.parse(req.body);
+      const product = await storage.updateProduct(req.params.id, productData);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      res.json(product);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update product" });
+    }
+  });
+
+  // Admin: Delete product
+  app.delete("/api/admin/products/:id", authenticateToken, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const isAdmin = await storage.isUserAdmin(user.id);
+      if (!isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      await storage.deleteProduct(req.params.id);
+      res.json({ message: "Product deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete product" });
     }
   });
 

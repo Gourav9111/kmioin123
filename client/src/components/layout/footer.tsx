@@ -4,6 +4,7 @@ import { Facebook, Instagram, Twitter, Linkedin } from "lucide-react";
 export default function Footer() {
   const sportsCategories = [
     { name: "Cricket Jerseys", href: "/products?category=cricket" },
+    { name: "Biker Jerseys", href: "/products?category=biker" },
     { name: "Football Jerseys", href: "/products?category=football" },
     { name: "Badminton Jerseys", href: "/products?category=badminton" },
     { name: "Basketball Jerseys", href: "/products?category=basketball" },
@@ -108,7 +109,7 @@ export default function Footer() {
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <i className="fas fa-phone text-primary"></i>
-                <span className="text-muted-foreground" data-testid="text-phone">+91 98765 43210</span>
+                <span className="text-muted-foreground" data-testid="text-phone">095759 90599</span>
               </div>
               <div className="flex items-center space-x-3">
                 <i className="fas fa-envelope text-primary"></i>
@@ -116,7 +117,7 @@ export default function Footer() {
               </div>
               <div className="flex items-center space-x-3">
                 <i className="fas fa-map-marker-alt text-primary"></i>
-                <span className="text-muted-foreground" data-testid="text-location">Mumbai, India</span>
+                <span className="text-muted-foreground" data-testid="text-location">Shop No1,2,3, 2nd Floor, B-Block, Indus Market Rd, near HDFC ATM, Indus Towne, Ratanpur Sadak, Bhopal, Madhya Pradesh 462043</span>
               </div>
             </div>
           </div>

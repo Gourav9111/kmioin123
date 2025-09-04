@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Heart, ShoppingCart, Star, Truck, Shield, RotateCcw } from "lucide-react";
+import ProductCard from "@/components/product/product-card";
 import type { Product } from "@shared/schema";
 
 export default function ProductDetail() {
@@ -34,6 +35,11 @@ export default function ProductDetail() {
   const { data: product, isLoading } = useQuery<Product>({
     queryKey: ["/api/products", params?.slug],
     enabled: !!params?.slug,
+  });
+
+  const { data: relatedProducts } = useQuery<Product[]>({
+    queryKey: ["/api/products", params?.slug, "related"],
+    enabled: !!params?.slug && !!product,
   });
 
   const addToCartMutation = useMutation({
@@ -445,6 +451,21 @@ export default function ProductDetail() {
             </p>
           </div>
         </div>
+
+        {/* Related Products */}
+        {relatedProducts && relatedProducts.length > 0 && (
+          <>
+            <Separator className="my-12" />
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold" data-testid="text-related-products-title">Related Products</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {relatedProducts.map((relatedProduct) => (
+                  <ProductCard key={relatedProduct.id} product={relatedProduct} />
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       <Footer />
