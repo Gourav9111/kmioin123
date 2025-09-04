@@ -10,6 +10,7 @@ import Cart from "@/pages/cart";
 import Wishlist from "@/pages/wishlist";
 import Landing from "@/pages/landing";
 import NotFound from "@/pages/not-found";
+import AdminPanel from "@/pages/admin";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/products/:slug" component={ProductDetail} />
         <Route path="/cart" component={Cart} />
         <Route path="/wishlist" component={Wishlist} />
+        <Route path="/admin" component={AdminPanel} />
         <Route component={NotFound} />
       </Switch>
       <Toaster />
