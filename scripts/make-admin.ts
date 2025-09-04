@@ -1,47 +1,35 @@
 
-import { storage } from "../server/storage.js";
+import { storage } from "../server/storage";
+import { hashPassword } from "../server/auth";
 
 async function makeAdmin() {
-  const username = process.argv[2];
-  const password = process.argv[3];
-
-  if (!username || !password) {
-    console.log("Usage: npm run make-admin <username> <password>");
-    console.log("Example: npm run make-admin admin admin123");
-    process.exit(1);
-  }
-
   try {
-    // Check if we have any users first
-    const users = await storage.getAllUsers();
+    const email = "admin@example.com"; // Change this to your desired admin email
+    const password = "admin123456"; // Change this to your desired admin password
     
-    if (!users || users.length === 0) {
-      console.log("No users found. Please log in to the application first.");
-      process.exit(1);
-    }
-
-    // Find user by username (assuming username is stored in firstName, lastName, or email)
-    const user = users.find(u => 
-      u.email?.toLowerCase().includes(username.toLowerCase()) ||
-      u.firstName?.toLowerCase().includes(username.toLowerCase()) ||
-      u.lastName?.toLowerCase().includes(username.toLowerCase())
-    );
-
+    // Check if user already exists
+    let user = await storage.getUserByEmail(email);
+    
     if (!user) {
-      console.log(`User '${username}' not found. Available users:`);
-      users.forEach(u => {
-        console.log(`- ${u.firstName} ${u.lastName} (${u.email})`);
+      // Create the admin user
+      const hashedPassword = await hashPassword(password);
+      user = await storage.createUser({
+        firstName: "Admin",
+        lastName: "User",
+        email: email,
+        password: hashedPassword,
+        mobileNumber: "0000000000",
       });
-      process.exit(1);
+      console.log("Admin user created");
     }
-
-    // For now, we'll just make the first matching user an admin
-    // In a real app, you'd want proper password verification
-    await storage.promoteToAdmin(user.id);
-    console.log(`User '${user.firstName} ${user.lastName}' (${user.email}) has been promoted to admin.`);
     
+    // Promote to admin
+    await storage.promoteToAdmin(user.id);
+    console.log(`User ${email} has been promoted to admin`);
+    
+    process.exit(0);
   } catch (error) {
-    console.error("Error making user admin:", error);
+    console.error("Error creating admin:", error);
     process.exit(1);
   }
 }

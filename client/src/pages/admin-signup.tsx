@@ -1,17 +1,33 @@
-
 import { useState } from "react";
-import { useLocation } from "wouter";
-import { useMutation } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 
-export default function AdminSignup() {
+export default function AdminSignupPage() {
+  const { user, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
+
+  // Check if current user is admin
+  const { data: adminCheck, isLoading: adminCheckLoading } = useQuery({
+    queryKey: ["/api/admin/check"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/admin/check");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to check admin status");
+      }
+      return response.json();
+    },
+    enabled: isAuthenticated,
+  });
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -48,7 +64,7 @@ export default function AdminSignup() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
       toast({
         title: "Error",
@@ -60,7 +76,7 @@ export default function AdminSignup() {
 
     if (formData.password.length < 6) {
       toast({
-        title: "Error", 
+        title: "Error",
         description: "Password must be at least 6 characters long",
         variant: "destructive",
       });
@@ -76,6 +92,53 @@ export default function AdminSignup() {
       [e.target.name]: e.target.value,
     });
   };
+
+  // If not authenticated, redirect to login
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6">
+            <p>Please log in to access this page.</p>
+            <Button onClick={() => navigate("/login")} className="mt-4">
+              Go to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Loading state
+  if (adminCheckLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6">
+            <div className="flex justify-center">
+              <div className="animate-spin w-6 h-6 border-4 border-primary border-t-transparent rounded-full" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // If not admin, deny access
+  if (!adminCheck?.isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6">
+            <p>Access denied. Only existing admins can create new admin accounts.</p>
+            <Button onClick={() => navigate("/admin")} className="mt-4">
+              Back to Admin Panel
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

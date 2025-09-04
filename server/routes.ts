@@ -89,9 +89,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/admin/create", async (req, res) => {
+  app.post("/api/admin/create", authenticateToken, async (req, res) => {
     try {
+      const user = (req as any).user;
       const { firstName, lastName, email, password, adminCode } = req.body;
+      
+      // Check if current user is admin (only admins can create other admins)
+      const isCurrentUserAdmin = await storage.isUserAdmin(user.id);
+      if (!isCurrentUserAdmin) {
+        return res.status(403).json({ message: "Admin access required to create admin accounts" });
+      }
       
       // Check admin creation code (you can change this to your preferred code)
       const ADMIN_CREATION_CODE = process.env.ADMIN_CREATION_CODE || "ADMIN2024";
