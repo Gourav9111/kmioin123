@@ -179,87 +179,35 @@ export default function Landing() {
             Choose Your Sports
           </h2>
 
-          {/* Categories Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-            <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-red-600 to-red-800 p-6 text-white cursor-pointer transform hover:scale-105 transition-all duration-300">
-              <div className="absolute inset-0 bg-black/20" />
-              <div className="relative z-10">
-                <h3 className="text-xl font-bold mb-2">Football Jerseys</h3>
-                <p className="text-red-100 mb-4">Professional grade football uniforms</p>
-                <Button 
-                  variant="secondary" 
-                  className="bg-white text-red-600 hover:bg-red-50"
-                  onClick={() => window.location.href = "/products?category=football"}
-                >
-                  Shop Now
-                </Button>
-              </div>
-            </div>
-
-            <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 p-6 text-white cursor-pointer transform hover:scale-105 transition-all duration-300">
-              <div className="absolute inset-0 bg-black/20" />
-              <div className="relative z-10">
-                <h3 className="text-xl font-bold mb-2">Cricket Jerseys</h3>
-                <p className="text-blue-100 mb-4">High-performance cricket uniforms</p>
-                <Button 
-                  variant="secondary" 
-                  className="bg-white text-blue-600 hover:bg-blue-50"
-                  onClick={() => window.location.href = "/products?category=cricket"}
-                >
-                  Shop Now
-                </Button>
-              </div>
-            </div>
-
-            <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-orange-600 to-orange-800 p-6 text-white cursor-pointer transform hover:scale-105 transition-all duration-300">
-              <div className="absolute inset-0 bg-black/20" />
-              <div className="relative z-10">
-                <img 
-                  src="/src/assets/products/biker/racing-team-jacket.jpg" 
-                  alt="Biker Jerseys" 
-                  className="absolute inset-0 w-full h-full object-cover opacity-30"
-                />
-                <h3 className="text-xl font-bold mb-2">Biker Jerseys</h3>
-                <p className="text-orange-100 mb-4">High-performance racing wear</p>
-                <Button 
-                  variant="secondary" 
-                  className="bg-white text-orange-600 hover:bg-orange-50"
-                  onClick={() => {
-                    // Find biker category by name since we need the ID
-                    fetch('/api/categories')
-                      .then(res => res.json())
-                      .then(categories => {
-                        const bikerCategory = categories.find((cat: any) => 
-                          cat.name.toLowerCase().includes('biker') || 
-                          cat.slug.toLowerCase().includes('biker')
-                        );
-                        if (bikerCategory) {
-                          window.location.href = `/products?category=${bikerCategory.id}`;
-                        } else {
-                          window.location.href = "/products";
-                        }
-                      });
-                  }}
-                >
-                  Shop Now
-                </Button>
-              </div>
-            </div>
-
-            <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-purple-600 to-purple-800 p-6 text-white cursor-pointer transform hover:scale-105 transition-all duration-300">
-              <div className="absolute inset-0 bg-black/20" />
-              <div className="relative z-10">
-                <h3 className="text-xl font-bold mb-2">Esports Jerseys</h3>
-                <p className="text-purple-100 mb-4">Gaming tournament uniforms</p>
-                <Button 
-                  variant="secondary" 
-                  className="bg-white text-purple-600 hover:bg-purple-50"
-                  onClick={() => window.location.href = "/products?category=esports"}
-                >
-                  Shop Now
-                </Button>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {categories.slice(0, 3).map((category) => (
+              <Card key={category.id} className="card-hover bg-card border border-border rounded-xl overflow-hidden group cursor-pointer" data-testid={`category-card-${category.slug}`}>
+                <div className="relative">
+                  <img
+                    src={category.image}
+                    alt={category.name}
+                    className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-300"
+                    data-testid={`img-category-${category.slug}`}
+                  />
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center text-white">
+                      <h3 className="text-2xl font-bold mb-2" data-testid={`title-category-${category.slug}`}>
+                        {category.name}
+                      </h3>
+                      <p className="text-white/90 mb-4" data-testid={`description-category-${category.slug}`}>
+                        {category.description}
+                      </p>
+                      <Link href={`/products?category=${category.id}`}>
+                        <Button variant="secondary" className="bg-white text-primary hover:bg-white/90" data-testid={`button-shop-${category.slug}`}>
+                          Shop Now
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
           </div>
         </div>
       </section>

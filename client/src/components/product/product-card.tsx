@@ -90,28 +90,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const regularPrice = parseFloat(product.price);
   const discount = salePrice ? Math.round(((regularPrice - salePrice) / regularPrice) * 100) : 0;
 
-  // Get fallback image based on product name or category
-  const getFallbackImage = () => {
-    const productName = product.name?.toLowerCase() || '';
-
-    if (productName.includes('biker') || productName.includes('racing') || productName.includes('kamio')) {
-      return "/src/assets/products/biker/racing-team-jacket.jpg";
-    }
-    if (productName.includes('esports') || productName.includes('gaming')) {
-      return "/src/assets/products/biker/esports-biker-tee.jpg";
-    }
-    if (productName.includes('stealth')) {
-      return "/src/assets/products/biker/stealth-racing-suit.jpg";
-    }
-    if (productName.includes('wings')) {
-      return "/src/assets/products/biker/kamio-wings-jersey.jpg";
-    }
-
-    // Default fallback
-    return "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=600";
-  };
-
-  const displayImage = product.imageUrl || getFallbackImage();
+  const displayImage = product.imageUrl || "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=600";
 
   const handleAddToCart = () => {
     addToCartMutation.mutate({
