@@ -1,26 +1,104 @@
+
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertCartItemSchema, insertWishlistItemSchema } from "@shared/schema";
+import { authenticateToken, hashPassword, comparePassword, generateToken, validateEmail, validateMobileNumber, validatePassword } from "./auth";
+import { insertCartItemSchema, insertWishlistItemSchema, loginSchema, registerSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  await setupAuth(app);
+  // Auth routes
+  app.post("/api/register", async (req, res) => {
+    try {
+      const userData = registerSchema.parse(req.body);
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(userData.email);
+      if (existingUser) {
+        return res.status(400).json({ message: "User already exists" });
+      }
+
+      // Hash password
+      const hashedPassword = await hashPassword(userData.password);
+
+      // Create user
+      const user = await storage.createUser({
+        ...userData,
+        password: hashedPassword,
+      });
+
+      // Generate token
+      const token = generateToken(user.id);
+
+      res.status(201).json({
+        message: "User created successfully",
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          mobileNumber: user.mobileNumber,
+        },
+        token,
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "Registration failed" });
+    }
+  });
+
+  app.post("/api/login", async (req, res) => {
+    try {
+      const { email, password } = loginSchema.parse(req.body);
+
+      // Find user
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      // Check password
+      const isValidPassword = await comparePassword(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      // Generate token
+      const token = generateToken(user.id);
+
+      res.json({
+        message: "Login successful",
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          mobileNumber: user.mobileNumber,
+        },
+        token,
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Login error:", error);
+      res.status(500).json({ message: "Login failed" });
+    }
+  });
 
   // Get user info
-  app.get("/api/user", isAuthenticated, async (req, res) => {
-    const user = req.user as any;
-    if (!user) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
-    const userInfo = await storage.getUser(user.claims.sub);
-    if (!userInfo) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    res.json(userInfo);
+  app.get("/api/user", authenticateToken, async (req, res) => {
+    const user = (req as any).user;
+    res.json({
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      mobileNumber: user.mobileNumber,
+    });
   });
 
   // Categories
@@ -62,22 +140,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Cart
-  app.get("/api/cart", isAuthenticated, async (req, res) => {
+  app.get("/api/cart", authenticateToken, async (req, res) => {
     try {
-      const user = req.user as any;
-      const cartItems = await storage.getCartItems(user.claims.sub);
+      const user = (req as any).user;
+      const cartItems = await storage.getCartItems(user.id);
       res.json(cartItems);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch cart items" });
     }
   });
 
-  app.post("/api/cart", isAuthenticated, async (req, res) => {
+  app.post("/api/cart", authenticateToken, async (req, res) => {
     try {
-      const user = req.user as any;
+      const user = (req as any).user;
       const cartItem = insertCartItemSchema.parse({
         ...req.body,
-        userId: user.claims.sub,
+        userId: user.id,
       });
       const newItem = await storage.addToCart(cartItem);
       res.json(newItem);
@@ -89,7 +167,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/cart/:id", isAuthenticated, async (req, res) => {
+  app.patch("/api/cart/:id", authenticateToken, async (req, res) => {
     try {
       const { id } = req.params;
       const { quantity } = req.body;
@@ -109,7 +187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/cart/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/cart/:id", authenticateToken, async (req, res) => {
     try {
       const { id } = req.params;
       await storage.removeFromCart(id);
@@ -120,22 +198,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Wishlist
-  app.get("/api/wishlist", isAuthenticated, async (req, res) => {
+  app.get("/api/wishlist", authenticateToken, async (req, res) => {
     try {
-      const user = req.user as any;
-      const wishlistItems = await storage.getWishlistItems(user.claims.sub);
+      const user = (req as any).user;
+      const wishlistItems = await storage.getWishlistItems(user.id);
       res.json(wishlistItems);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch wishlist items" });
     }
   });
 
-  app.post("/api/wishlist", isAuthenticated, async (req, res) => {
+  app.post("/api/wishlist", authenticateToken, async (req, res) => {
     try {
-      const user = req.user as any;
+      const user = (req as any).user;
       const wishlistItem = insertWishlistItemSchema.parse({
         ...req.body,
-        userId: user.claims.sub,
+        userId: user.id,
       });
       const newItem = await storage.addToWishlist(wishlistItem);
       res.json(newItem);
@@ -147,11 +225,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/wishlist/:productId", isAuthenticated, async (req, res) => {
+  app.delete("/api/wishlist/:productId", authenticateToken, async (req, res) => {
     try {
-      const user = req.user as any;
+      const user = (req as any).user;
       const { productId } = req.params;
-      await storage.removeFromWishlist(user.claims.sub, productId);
+      await storage.removeFromWishlist(user.id, productId);
       res.json({ message: "Item removed from wishlist" });
     } catch (error) {
       res.status(500).json({ message: "Failed to remove item from wishlist" });
@@ -159,23 +237,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin routes
-  app.get("/api/admin/check", isAuthenticated, async (req, res) => {
+  app.get("/api/admin/check", authenticateToken, async (req, res) => {
     try {
-      const user = req.user as any;
-      const isAdmin = await storage.isUserAdmin(user.claims.sub);
+      const user = (req as any).user;
+      const isAdmin = await storage.isUserAdmin(user.id);
       res.json({ isAdmin });
     } catch (error) {
       res.status(500).json({ message: "Failed to check admin status" });
     }
   });
 
-  app.post("/api/admin/promote", isAuthenticated, async (req, res) => {
+  app.post("/api/admin/promote", authenticateToken, async (req, res) => {
     try {
-      const user = req.user as any;
+      const user = (req as any).user;
       const { userId } = req.body;
       
       // Check if current user is admin
-      const isCurrentUserAdmin = await storage.isUserAdmin(user.claims.sub);
+      const isCurrentUserAdmin = await storage.isUserAdmin(user.id);
       if (!isCurrentUserAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -187,10 +265,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/admin/stats", isAuthenticated, async (req, res) => {
+  app.get("/api/admin/stats", authenticateToken, async (req, res) => {
     try {
-      const user = req.user as any;
-      const isAdmin = await storage.isUserAdmin(user.claims.sub);
+      const user = (req as any).user;
+      const isAdmin = await storage.isUserAdmin(user.id);
       if (!isAdmin) {
         return res.status(403).json({ message: "Admin access required" });
       }

@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { authenticateToken } from "./auth";
 
 const app = express();
 app.use(express.json());
@@ -38,6 +39,15 @@ app.use((req, res, next) => {
 
 (async () => {
   const server = await registerRoutes(app);
+
+  // Apply authentication middleware to all routes that require it.
+  // For example, to protect /api/protected routes:
+  // app.use('/api/protected', authenticateToken);
+  // Or to protect all /api routes:
+  // app.use('/api', authenticateToken);
+  // For this example, let's assume we protect all /api routes.
+  app.use('/api', authenticateToken);
+
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

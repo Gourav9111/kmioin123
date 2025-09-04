@@ -6,7 +6,8 @@ export interface IStorage {
   // User methods
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
-  upsertUser(user: Omit<InsertUser, 'id'> & { id: string }): Promise<User>;
+  createUser(user: Omit<InsertUser, 'id' | 'createdAt' | 'updatedAt'>): Promise<User>;
+  updateUser(id: string, updates: Partial<User>): Promise<User | undefined>;
 
   // Category methods
   getCategories(): Promise<Category[]>;
@@ -52,22 +53,21 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async upsertUser(userData: Omit<InsertUser, 'id'> & { id: string }): Promise<User> {
+  async createUser(userData: Omit<InsertUser, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
     const [user] = await db
       .insert(users)
       .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          email: userData.email,
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          username: userData.username,
-          profileImageUrl: userData.profileImageUrl,
-        },
-      })
       .returning();
     return user;
+  }
+
+  async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return user || undefined;
   }
 
   async getCategories(): Promise<Category[]> {

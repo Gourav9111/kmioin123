@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { apiRequest } from "@/lib/queryClient";
-import { loginWithReplit, logoutFromReplit } from "@/lib/authUtils";
+import { logout } from "@/lib/authUtils";
 
 export default function Header() {
   const [location] = useLocation();
@@ -88,15 +88,20 @@ export default function Header() {
                   <DropdownMenuItem asChild>
                     <Link href="/cart">Cart</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={logoutFromReplit}>
+                  <DropdownMenuItem onClick={logout}>
                     Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="outline" size="sm" onClick={loginWithReplit}>
-                Login with Replit
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/login">Login</Link>
+                </Button>
+                <Button size="sm" asChild>
+                  <Link href="/register">Register</Link>
+                </Button>
+              </div>
             )}
 
             {/* Mobile Menu */}
@@ -128,9 +133,14 @@ export default function Header() {
                   ))}
 
                   {!isAuthenticated && (
-                    <Button onClick={loginWithReplit} className="mt-4" data-testid="button-mobile-login">
-                      Login with Replit
-                    </Button>
+                    <div className="flex gap-2 mt-4">
+                      <Button asChild className="flex-1">
+                        <Link href="/login">Login</Link>
+                      </Button>
+                      <Button variant="outline" asChild className="flex-1">
+                        <Link href="/register">Register</Link>
+                      </Button>
+                    </div>
                   )}
                 </div>
               </SheetContent>
