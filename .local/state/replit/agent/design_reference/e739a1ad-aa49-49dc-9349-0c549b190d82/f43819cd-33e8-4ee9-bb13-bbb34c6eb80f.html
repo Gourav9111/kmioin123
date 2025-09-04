@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAMIO - Custom Lifestyle | Custom Sports Jerseys for Cricket, Football, Esports & More</title>
+    <meta name="description" content="Create custom sports jerseys for cricket, football, basketball, badminton and esports. Professional quality with logo, name and number customization.">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          borderRadius: {
+            lg: "var(--radius)",
+            md: "calc(var(--radius) - 2px)",
+            sm: "calc(var(--radius) - 4px)",
+          },
+          colors: {
+            background: "var(--background)",
+            foreground: "var(--foreground)",
+            card: {
+              DEFAULT: "var(--card)",
+              foreground: "var(--card-foreground)",
+            },
+            primary: {
+              DEFAULT: "var(--primary)",
+              foreground: "var(--primary-foreground)",
+            },
+            secondary: {
+              DEFAULT: "var(--secondary)",
+              foreground: "var(--secondary-foreground)",
+            },
+            muted: {
+              DEFAULT: "var(--muted)",
+              foreground: "var(--muted-foreground)",
+            },
+            accent: {
+              DEFAULT: "var(--accent)",
+              foreground: "var(--accent-foreground)",
+            },
+            border: "var(--border)",
+            input: "var(--input)",
+            ring: "var(--ring)",
+          },
+          fontFamily: {
+            sans: ["Inter", "sans-serif"],
+          }
+        },
+      }
+    };
+    </script>
+    
+    <style>
+    :root {
+      --background: hsl(0 0% 10%);
+      --foreground: hsl(0 0% 98%);
+      --card: hsl(0 0% 16%);
+      --card-foreground: hsl(0 0% 98%);
+      --primary: hsl(25 85% 56%);
+      --primary-foreground: hsl(0 0% 98%);
+      --secondary: hsl(0 0% 20%);
+      --secondary-foreground: hsl(0 0% 98%);
+      --muted: hsl(0 0% 25%);
+      --muted-foreground: hsl(0 0% 65%);
+      --accent: hsl(25 85% 56%);
+      --accent-foreground: hsl(0 0% 98%);
+      --border: hsl(0 0% 30%);
+      --input: hsl(0 0% 25%);
+      --ring: hsl(25 85% 56%);
+      --radius: 0.5rem;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+
+    .hero-gradient {
+      background: linear-gradient(135deg, hsl(0 0% 10%) 0%, hsl(0 0% 16%) 50%, hsl(0 0% 10%) 100%);
+    }
+
+    .card-hover {
+      transition: all 0.3s ease;
+    }
+
+    .card-hover:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(232, 136, 53, 0.1);
+    }
+
+    .product-image {
+      transition: transform 0.3s ease;
+    }
+
+    .product-card:hover .product-image {
+      transform: scale(1.05);
+    }
+
+    @media (max-width: 768px) {
+      .hero-text {
+        font-size: 2.5rem;
+      }
+    }
+    </style>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-background text-foreground">
+
+    <!-- @COMPONENT: Header [Navigation with logo, menu items, cart, and user actions] -->
+    <header class="bg-card border-b border-border sticky top-0 z-50">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center space-x-2">
+                    <div class="bg-primary p-2 rounded-lg">
+                        <i class="fas fa-tshirt text-white text-xl"></i>
+                    </div>
+                    <div class="text-2xl font-bold text-primary">KAMIO</div>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#" class="text-foreground hover:text-primary transition-colors">HOME</a>
+                    <a href="#" class="text-foreground hover:text-primary transition-colors">JERSEY</a>
+                    <a href="#" class="text-foreground hover:text-primary transition-colors">CATALOGUE</a>
+                    <a href="#" class="text-foreground hover:text-primary transition-colors">CATEGORY</a>
+                    <a href="#" class="text-foreground hover:text-primary transition-colors">BULK ORDERS</a>
+                    <a href="#" class="text-foreground hover:text-primary transition-colors">ABOUT</a>
+                    <a href="#" class="text-foreground hover:text-primary transition-colors">CONTACT</a>
+                </nav>
+
+                <!-- Actions -->
+                <div class="flex items-center space-x-4">
+                    <button class="text-foreground hover:text-primary transition-colors">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="text-foreground hover:text-primary transition-colors">
+                        <i class="fas fa-heart"></i>
+                    </button>
+                    <button class="text-foreground hover:text-primary transition-colors relative">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="absolute -top-2 -right-2 bg-primary text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                    </button>
+                    <button class="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
+                        LOGIN / REGISTER
+                    </button>
+                </div>
+
+                <!-- Mobile menu button -->
+                <button class="md:hidden text-foreground">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: Header -->
+
+    <!-- @COMPONENT: Hero Section [Main banner with jersey customization messaging] -->
+    <section class="hero-gradient py-16 md:py-24">
+        <div class="container mx-auto px-4">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6">
+                    <h1 class="hero-text text-4xl md:text-6xl font-black leading-tight">
+                        <span class="text-primary">CUSTOMIZED</span><br>
+                        <span class="text-white">ESPORTS</span><br>
+                        <span class="text-white">JERSEY</span>
+                    </h1>
+                    
+                    <div class="space-y-4">
+                        <div class="text-lg text-muted-foreground">
+                            <span class="text-primary font-semibold">LOGO | NAME | NUMBER</span>
+                        </div>
+                        
+                        <div class="flex flex-wrap gap-3">
+                            <span class="bg-secondary px-3 py-1 rounded-full text-sm">ROUND</span>
+                            <span class="bg-secondary px-3 py-1 rounded-full text-sm">STAND</span>
+                            <span class="bg-secondary px-3 py-1 rounded-full text-sm">V NECK</span>
+                            <span class="bg-secondary px-3 py-1 rounded-full text-sm">V-COLLAR</span>
+                            <span class="bg-secondary px-3 py-1 rounded-full text-sm">BUTTON COLLAR</span>
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="text-2xl font-bold text-primary">STARTS FROM RS.799/-</div>
+                            <div class="text-sm text-muted-foreground">FOR BULK ORDERS ONLY</div>
+                        </div>
+
+                        <div class="flex gap-4 pt-4">
+                            <button class="bg-primary text-primary-foreground px-8 py-3 rounded-lg hover:bg-primary/90 transition-colors font-semibold">
+                                ORDER NOW
+                            </button>
+                            <button class="border border-border text-foreground px-8 py-3 rounded-lg hover:bg-secondary transition-colors font-semibold">
+                                VIEW CATALOGUE
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <!-- Professional esports player in gaming setup with dramatic lighting -->
+                    <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600" 
+                         alt="Professional esports player in gaming jersey with dramatic lighting" 
+                         class="rounded-xl shadow-2xl w-full h-auto">
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Hero Section -->
+
+    <!-- @COMPONENT: Features Section [Key selling points with icons] -->
+    <section class="py-16 bg-card/50">
+        <div class="container mx-auto px-4">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div class="text-center space-y-4">
+                    <div class="bg-primary p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
+                        <i class="fas fa-palette text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-primary">CUSTOM MADE</h3>
+                    <p class="text-muted-foreground">Personalized designs tailored to your team's unique identity and preferences.</p>
+                </div>
+
+                <div class="text-center space-y-4">
+                    <div class="bg-primary p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
+                        <i class="fas fa-shipping-fast text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-primary">FREE SHIPPING</h3>
+                    <p class="text-muted-foreground">Free delivery on all orders across India with secure packaging.</p>
+                </div>
+
+                <div class="text-center space-y-4">
+                    <div class="bg-primary p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
+                        <i class="fas fa-shopping-basket text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-primary">NO MINIMUM ORDER</h3>
+                    <p class="text-muted-foreground">Order any quantity from single pieces to bulk team orders.</p>
+                </div>
+
+                <div class="text-center space-y-4">
+                    <div class="bg-primary p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
+                        <i class="fas fa-magic text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-primary">FREE CUSTOMIZATION</h3>
+                    <p class="text-muted-foreground">Design your jersey with logos, names, numbers at no extra cost.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Features Section -->
+
+    <!-- @COMPONENT: Sports Categories [Choose Your Sports section] -->
+    <section class="py-16">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-12">
+                <span class="text-primary">CHOOSE YOUR</span> <span class="text-white">SPORTS</span>
+            </h2>
+
+            <div class="grid md:grid-cols-5 gap-6">
+                <div class="group cursor-pointer">
+                    <div class="bg-card rounded-lg overflow-hidden card-hover">
+                        <!-- Cricket player batting with dramatic lighting -->
+                        <img src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300" 
+                             alt="Cricket player batting with dramatic lighting" 
+                             class="w-full h-48 object-cover">
+                        <div class="p-4 text-center">
+                            <h3 class="text-xl font-bold text-primary">CRICKET</h3>
+                            <button class="mt-2 bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90 transition-colors">
+                                TO SHOP
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="group cursor-pointer">
+                    <div class="bg-card rounded-lg overflow-hidden card-hover">
+                        <!-- Football players in action with dramatic lighting -->
+                        <img src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300" 
+                             alt="Football players in action with dramatic lighting" 
+                             class="w-full h-48 object-cover">
+                        <div class="p-4 text-center">
+                            <h3 class="text-xl font-bold text-primary">FOOTBALL</h3>
+                            <button class="mt-2 bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90 transition-colors">
+                                TO SHOP
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="group cursor-pointer">
+                    <div class="bg-card rounded-lg overflow-hidden card-hover">
+                        <!-- Badminton player with racket dramatic lighting -->
+                        <img src="https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300" 
+                             alt="Badminton player with racket in dramatic lighting" 
+                             class="w-full h-48 object-cover">
+                        <div class="p-4 text-center">
+                            <h3 class="text-xl font-bold text-primary">BADMINTON</h3>
+                            <button class="mt-2 bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90 transition-colors">
+                                TO SHOP
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="group cursor-pointer">
+                    <div class="bg-card rounded-lg overflow-hidden card-hover">
+                        <!-- Basketball player dribbling in dramatic lighting -->
+                        <img src="https://images.unsplash.com/photo-1546519638-68e109498ffc?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300" 
+                             alt="Basketball player dribbling with dramatic lighting" 
+                             class="w-full h-48 object-cover">
+                        <div class="p-4 text-center">
+                            <h3 class="text-xl font-bold text-primary">BASKETBALL</h3>
+                            <button class="mt-2 bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90 transition-colors">
+                                TO SHOP
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="group cursor-pointer">
+                    <div class="bg-card rounded-lg overflow-hidden card-hover">
+                        <!-- Esports gaming setup with dramatic lighting -->
+                        <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300" 
+                             alt="Esports gaming setup with RGB lighting and professional gear" 
+                             class="w-full h-48 object-cover">
+                        <div class="p-4 text-center">
+                            <h3 class="text-xl font-bold text-primary">ESPORTS</h3>
+                            <button class="mt-2 bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90 transition-colors">
+                                BUY NOW
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Sports Categories -->
+
+    <!-- @COMPONENT: Best Seller Products [Featured products section] -->
+    <section class="py-16 bg-card/30">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-12">
+                <span class="text-primary">BEST SELLER</span> <span class="text-white">CUSTOMIZED JERSEY</span>
+            </h2>
+
+            <!-- @MAP: Esports Jerseys -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-bold text-primary mb-6">Customized Esports Jersey</h3>
+                <div class="grid md:grid-cols-4 gap-6">
+                    <div class="bg-card rounded-lg overflow-hidden product-card group">
+                        <div class="relative overflow-hidden">
+                            <span class="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 text-xs rounded z-10">-43%</span>
+                            <!-- Blue gaming jersey with futuristic design -->
+                            <img src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=500" 
+                                 alt="Blue gaming jersey with futuristic esports design" 
+                                 class="w-full h-64 object-cover product-image">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                <div class="flex space-x-2">
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-heart"></i>
+                                    </button>
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-balance-scale"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h4 class="font-bold text-white mb-2">Blue Inox Esports Jersey – Premium Gaming Apparel</h4>
+                            <p class="text-muted-foreground text-sm mb-2">Esports Jersey</p>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-muted-foreground line-through">₹1,499.00</span>
+                                <span class="text-primary font-bold text-lg">₹849.00</span>
+                            </div>
+                            <button class="w-full mt-3 bg-primary text-primary-foreground py-2 rounded hover:bg-primary/90 transition-colors">
+                                SELECT OPTIONS
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-card rounded-lg overflow-hidden product-card group">
+                        <div class="relative overflow-hidden">
+                            <span class="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 text-xs rounded z-10">-43%</span>
+                            <!-- Purple gaming jersey with galaxy design -->
+                            <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=500" 
+                                 alt="Purple gaming jersey with galaxy and stellar design patterns" 
+                                 class="w-full h-64 object-cover product-image">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                <div class="flex space-x-2">
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-heart"></i>
+                                    </button>
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-balance-scale"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h4 class="font-bold text-white mb-2">The Galaxy Esports Jersey – Stellar Gaming Apparel</h4>
+                            <p class="text-muted-foreground text-sm mb-2">Esports Jersey</p>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-muted-foreground line-through">₹1,499.00</span>
+                                <span class="text-primary font-bold text-lg">₹849.00</span>
+                            </div>
+                            <button class="w-full mt-3 bg-primary text-primary-foreground py-2 rounded hover:bg-primary/90 transition-colors">
+                                SELECT OPTIONS
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-card rounded-lg overflow-hidden product-card group">
+                        <div class="relative overflow-hidden">
+                            <span class="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 text-xs rounded z-10">-43%</span>
+                            <!-- Black gaming jersey with sleek design -->
+                            <img src="https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=500" 
+                                 alt="Black gaming jersey with high-performance sleek design" 
+                                 class="w-full h-64 object-cover product-image">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                <div class="flex space-x-2">
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-heart"></i>
+                                    </button>
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-balance-scale"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h4 class="font-bold text-white mb-2">Goblk Esports Jersey – High-Performance Gaming Apparel</h4>
+                            <p class="text-muted-foreground text-sm mb-2">Esports Jersey</p>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-muted-foreground line-through">₹1,499.00</span>
+                                <span class="text-primary font-bold text-lg">₹849.00</span>
+                            </div>
+                            <button class="w-full mt-3 bg-primary text-primary-foreground py-2 rounded hover:bg-primary/90 transition-colors">
+                                SELECT OPTIONS
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-card rounded-lg overflow-hidden product-card group">
+                        <div class="relative overflow-hidden">
+                            <span class="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 text-xs rounded z-10">-43%</span>
+                            <!-- Red gaming jersey with thunder design -->
+                            <img src="https://pixabay.com/get/gc7de9977c269cb6a65ca84f53677a69365fc1fb53d773f8b1d6809846b64b4c1a03f5f324104ae3b1f8b1060fb71b183fefe9892350e63d552a21a6435c76ee7_1280.jpg" 
+                                 alt="Red gaming jersey with thunder and power-packed design" 
+                                 class="w-full h-64 object-cover product-image">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                <div class="flex space-x-2">
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-heart"></i>
+                                    </button>
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-balance-scale"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h4 class="font-bold text-white mb-2">Red Thunder Esports Jersey – Power-Packed Gaming</h4>
+                            <p class="text-muted-foreground text-sm mb-2">Esports Jersey</p>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-muted-foreground line-through">₹1,499.00</span>
+                                <span class="text-primary font-bold text-lg">₹849.00</span>
+                            </div>
+                            <button class="w-full mt-3 bg-primary text-primary-foreground py-2 rounded hover:bg-primary/90 transition-colors">
+                                SELECT OPTIONS
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_MAP -->
+
+            <!-- @MAP: Cricket Jerseys -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-bold text-primary mb-6">Customized Cricket Jersey</h3>
+                <div class="grid md:grid-cols-4 gap-6">
+                    <div class="bg-card rounded-lg overflow-hidden product-card group">
+                        <div class="relative overflow-hidden">
+                            <span class="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 text-xs rounded z-10">-38%</span>
+                            <!-- Grey cricket jersey with tricolor design -->
+                            <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=500" 
+                                 alt="Grey cricket jersey with tricolor design elements" 
+                                 class="w-full h-64 object-cover product-image">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                <div class="flex space-x-2">
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-heart"></i>
+                                    </button>
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-balance-scale"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h4 class="font-bold text-white mb-2">Grey Tricolor Cricket Team Jersey</h4>
+                            <p class="text-muted-foreground text-sm mb-2">Cricket Jersey</p>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-muted-foreground line-through">₹1,599.00</span>
+                                <span class="text-primary font-bold text-lg">₹999.00</span>
+                            </div>
+                            <button class="w-full mt-3 bg-primary text-primary-foreground py-2 rounded hover:bg-primary/90 transition-colors">
+                                SELECT OPTIONS
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-card rounded-lg overflow-hidden product-card group">
+                        <div class="relative overflow-hidden">
+                            <span class="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 text-xs rounded z-10">-38%</span>
+                            <!-- Cricket jersey with eagle design -->
+                            <img src="https://images.unsplash.com/photo-1551698618-1dfe5d97d256?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=500" 
+                                 alt="Cricket jersey with rising eagle design and team branding" 
+                                 class="w-full h-64 object-cover product-image">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                <div class="flex space-x-2">
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-heart"></i>
+                                    </button>
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-balance-scale"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h4 class="font-bold text-white mb-2">Rising Eagle Cricket Team Jersey</h4>
+                            <p class="text-muted-foreground text-sm mb-2">Cricket Jersey</p>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-muted-foreground line-through">₹1,599.00</span>
+                                <span class="text-primary font-bold text-lg">₹999.00</span>
+                            </div>
+                            <button class="w-full mt-3 bg-primary text-primary-foreground py-2 rounded hover:bg-primary/90 transition-colors">
+                                SELECT OPTIONS
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-card rounded-lg overflow-hidden product-card group">
+                        <div class="relative overflow-hidden">
+                            <span class="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 text-xs rounded z-10">-43%</span>
+                            <!-- Yellow cricket jersey with shock design -->
+                            <img src="https://pixabay.com/get/g5ea7f09a931fbd0f80d2d30a285f9a722939d17480d01762378f06736647c340153a37dbbb83529e0c601936757025c5e7549f79ab7d05c50618ed215e525b6b_1280.jpg" 
+                                 alt="Yellow cricket jersey with shock design and bold graphics" 
+                                 class="w-full h-64 object-cover product-image">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                <div class="flex space-x-2">
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-heart"></i>
+                                    </button>
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-balance-scale"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h4 class="font-bold text-white mb-2">Yellow Shock Jersey Y-08</h4>
+                            <p class="text-muted-foreground text-sm mb-2">Yellow Color</p>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-muted-foreground line-through">₹1,499.00</span>
+                                <span class="text-primary font-bold text-lg">₹849.00</span>
+                            </div>
+                            <button class="w-full mt-3 bg-primary text-primary-foreground py-2 rounded hover:bg-primary/90 transition-colors">
+                                SELECT OPTIONS
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-card rounded-lg overflow-hidden product-card group">
+                        <div class="relative overflow-hidden">
+                            <span class="absolute top-2 left-2 bg-red-600 text-white px-2 py-1 text-xs rounded z-10">-38%</span>
+                            <!-- Blue cricket jersey with feather design -->
+                            <img src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=500" 
+                                 alt="Blue cricket jersey with feather design and team graphics" 
+                                 class="w-full h-64 object-cover product-image">
+                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                <div class="flex space-x-2">
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-heart"></i>
+                                    </button>
+                                    <button class="bg-primary p-2 rounded-full text-white hover:bg-primary/90">
+                                        <i class="fas fa-balance-scale"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h4 class="font-bold text-white mb-2">Blue Feather Cricket Team Jersey</h4>
+                            <p class="text-muted-foreground text-sm mb-2">Cricket Jersey</p>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-muted-foreground line-through">₹1,599.00</span>
+                                <span class="text-primary font-bold text-lg">₹999.00</span>
+                            </div>
+                            <button class="w-full mt-3 bg-primary text-primary-foreground py-2 rounded hover:bg-primary/90 transition-colors">
+                                SELECT OPTIONS
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_MAP -->
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Best Seller Products -->
+
+    <!-- @COMPONENT: Why Choose Us Section [Value propositions] -->
+    <section class="py-16">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-12">
+                <span class="text-primary">WHY CHOOSE</span> <span class="text-white">KAMIO?</span>
+            </h2>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="space-y-6">
+                    <div class="bg-card p-6 rounded-lg">
+                        <div class="flex items-start space-x-4">
+                            <div class="bg-primary p-3 rounded-full flex-shrink-0">
+                                <i class="fas fa-infinity text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-primary mb-2">Without Limits</h3>
+                                <p class="text-muted-foreground">Change colors, add logos, names, numbers, all at no extra cost. You decide whether to buy one of our designs or create your own special design.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-card p-6 rounded-lg">
+                        <div class="flex items-start space-x-4">
+                            <div class="bg-primary p-3 rounded-full flex-shrink-0">
+                                <i class="fas fa-award text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-primary mb-2">Quality</h3>
+                                <p class="text-muted-foreground">Selected technical fabrics and models designed to offer you the best experience. Each process is entrusted to the best experts in the sector.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-card p-6 rounded-lg">
+                        <div class="flex items-start space-x-4">
+                            <div class="bg-primary p-3 rounded-full flex-shrink-0">
+                                <i class="fas fa-pencil-ruler text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-primary mb-2">Design</h3>
+                                <p class="text-muted-foreground">With our team of designers you can realize the most unique and special ideas. Tell us your idea, we will realize it for you, with you.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-card p-6 rounded-lg">
+                        <div class="flex items-start space-x-4">
+                            <div class="bg-primary p-3 rounded-full flex-shrink-0">
+                                <i class="fas fa-headset text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-primary mb-2">Service</h3>
+                                <p class="text-muted-foreground">We support you in every step, from creating the design to delivering your personalized uniforms. Our team is at your service.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-card p-6 rounded-lg">
+                        <div class="flex items-start space-x-4">
+                            <div class="bg-primary p-3 rounded-full flex-shrink-0">
+                                <i class="fas fa-clock text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-primary mb-2">Timing</h3>
+                                <p class="text-muted-foreground">We are always working to reduce waiting times to a minimum. Remember that every order is made from scratch just for you.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-card p-6 rounded-lg">
+                        <div class="flex items-start space-x-4">
+                            <div class="bg-primary p-3 rounded-full flex-shrink-0">
+                                <i class="fas fa-flag text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-primary mb-2">Made In India</h3>
+                                <p class="text-muted-foreground">The production, creation and design processes are all managed in India and controlled solely by us to offer you the best service.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Why Choose Us Section -->
+
+    <!-- @COMPONENT: CTA Section [Call to action] -->
+    <section class="py-16 bg-gradient-to-r from-primary to-accent">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-4xl font-bold text-white mb-4">Ready to Create Your Custom Jersey?</h2>
+            <p class="text-xl text-white/90 mb-8">Join thousands of satisfied customers who chose KAMIO for their team uniforms</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button class="bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                    START DESIGNING
+                </button>
+                <button class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-primary transition-colors">
+                    VIEW CATALOGUE
+                </button>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: CTA Section -->
+
+    <!-- @COMPONENT: Footer [Company info, links, contact details] -->
+    <footer class="bg-card border-t border-border">
+        <div class="container mx-auto px-4 py-12">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="bg-primary p-2 rounded-lg">
+                            <i class="fas fa-tshirt text-white text-xl"></i>
+                        </div>
+                        <div class="text-2xl font-bold text-primary">KAMIO</div>
+                    </div>
+                    <p class="text-muted-foreground">Custom Lifestyle - Creating premium sports jerseys for cricket, football, basketball, badminton, and esports teams across India.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-muted-foreground hover:text-primary transition-colors">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="text-muted-foreground hover:text-primary transition-colors">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="text-muted-foreground hover:text-primary transition-colors">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="text-muted-foreground hover:text-primary transition-colors">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-bold text-white mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-muted-foreground hover:text-primary transition-colors">Home</a></li>
+                        <li><a href="#" class="text-muted-foreground hover:text-primary transition-colors">About Us</a></li>
+                        <li><a href="#" class="text-muted-foreground hover:text-primary transition-colors">Products</a></li>
+                        <li><a href="#" class="text-muted-foreground hover:text-primary transition-colors">Custom Design</a></li>
+                        <li><a href="#" class="text-muted-foreground hover:text-primary transition-colors">Bulk Orders</a></li>
+                        <li><a href="#" class="text-muted-foreground hover:text-primary transition-colors">Contact</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-bold text-white mb-4">Categories</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-muted-foreground hover:text-primary transition-colors">Cricket Jerseys</a></li>
+                        <li><a href="#" class="text-muted-foreground hover:text-primary transition-colors">Football Jerseys</a></li>
+                        <li><a href="#" class="text-muted-foreground hover:text-primary transition-colors">Basketball Jerseys</a></li>
+                        <li><a href="#" class="text-muted-foreground hover:text-primary transition-colors">Badminton Jerseys</a></li>
+                        <li><a href="#" class="text-muted-foreground hover:text-primary transition-colors">Esports Jerseys</a></li>
+                        <li><a href="#" class="text-muted-foreground hover:text-primary transition-colors">All Products</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-bold text-white mb-4">Contact Info</h3>
+                    <ul class="space-y-2 text-muted-foreground">
+                        <li class="flex items-center space-x-2">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Mumbai, Maharashtra, India</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i class="fas fa-phone"></i>
+                            <span>+91 98765 43210</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i class="fas fa-envelope"></i>
+                            <span>info@kamio.in</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i class="fas fa-clock"></i>
+                            <span>Mon-Sat: 9:00 AM - 7:00 PM</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-border mt-8 pt-8 text-center text-muted-foreground">
+                <p>&copy; 2024 KAMIO Custom Lifestyle. All rights reserved. | Privacy Policy | Terms of Service</p>
+            </div>
+        </div>
+    </footer>
+    <!-- @END_COMPONENT: Footer -->
+
+    <!-- WhatsApp Chat Button -->
+    <div class="fixed bottom-6 right-6 z-50">
+        <button class="bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110">
+            <i class="fab fa-whatsapp text-2xl"></i>
+        </button>
+    </div>
+
+    <script>
+    (function() {
+        // Mobile menu toggle functionality
+        // TODO: Implement mobile menu toggle
+        
+        // Product hover effects
+        // TODO: Add smooth product image transitions
+        
+        // Cart functionality
+        // TODO: Implement add to cart functionality
+        
+        // Wishlist functionality
+        // TODO: Implement wishlist management
+        
+        // Product comparison
+        // TODO: Add product comparison features
+        
+        // Search functionality
+        // TODO: Implement product search
+        
+        // Custom jersey designer
+        // TODO: Build interactive jersey customization tool
+        
+        // Order tracking
+        // TODO: Add order management system
+        
+        console.log('KAMIO Custom Lifestyle - Jersey E-commerce Platform Loaded');
+    })();
+    </script>
+
+</body>
+</html>
