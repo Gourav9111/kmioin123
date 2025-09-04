@@ -32,13 +32,23 @@ export default function Products() {
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
-      if (selectedCategory || categoryParam) params.append('categoryId', selectedCategory || categoryParam);
+      if (selectedCategory || categoryParam) {
+        params.append('categoryId', selectedCategory || categoryParam);
+      }
       
       const response = await fetch(`/api/products?${params.toString()}`);
       if (!response.ok) {
         throw new Error('Failed to fetch products');
       }
-      return response.json();
+      const data = await response.json();
+      
+      // Additional client-side filtering to ensure products match their categories
+      if (selectedCategory || categoryParam) {
+        const targetCategoryId = selectedCategory || categoryParam;
+        return data.filter((product: Product) => product.categoryId === targetCategoryId);
+      }
+      
+      return data;
     },
   });
 
