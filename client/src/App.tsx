@@ -1,8 +1,7 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { Switch, Route } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { queryClient } from "@/lib/queryClient";
-import { lazy } from "react";
 
 import Home from "@/pages/home";
 import Products from "@/pages/products";
@@ -12,6 +11,8 @@ import Wishlist from "@/pages/wishlist";
 import Landing from "@/pages/landing";
 import NotFound from "@/pages/not-found";
 import AdminPanel from "@/pages/admin";
+import LoginPage from "@/pages/login";
+import RegisterPage from "@/pages/register";
 
 function App() {
   return (
@@ -23,8 +24,8 @@ function App() {
         <Route path="/products/:slug" component={ProductDetail} />
         <Route path="/cart" component={Cart} />
         <Route path="/wishlist" component={Wishlist} />
-        <Route path="/login" component={lazy(() => import("./pages/login"))} />
-        <Route path="/register" component={lazy(() => import("./pages/register"))} />
+        <Route path="/login" component={LoginPage} />
+        <Route path="/register" component={RegisterPage} />
         <Route path="/admin" component={AdminPanel} />
         <Route component={NotFound} />
       </Switch>
