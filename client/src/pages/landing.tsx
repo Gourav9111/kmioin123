@@ -100,7 +100,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header />
-      
+
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary/10 to-primary/5 py-20 overflow-hidden">
         <div className="container mx-auto px-4 relative z-10">
@@ -117,7 +117,7 @@ export default function Landing() {
                   <span className="text-foreground">SHORTS</span>
                 </h1>
               </div>
-              
+
               <div className="space-y-4">
                 <h2 className="text-xl lg:text-2xl font-semibold text-muted-foreground" data-testid="subheading-sports">
                   WIDE RANGE OF BREATHABLE FABRIC
@@ -129,14 +129,14 @@ export default function Landing() {
                   <p>ESPORTS</p>
                 </div>
               </div>
-              
+
               <Link href="/products">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg font-semibold" data-testid="button-shop-now">
                   SHOP NOW
                 </Button>
               </Link>
             </div>
-            
+
             <div className="relative">
               <div className="relative z-10">
                 <img 
@@ -151,7 +151,7 @@ export default function Landing() {
           </div>
         </div>
       </section>
-      
+
       {/* Features Section */}
       <section className="py-16 bg-secondary/30">
         <div className="container mx-auto px-4">
@@ -171,14 +171,14 @@ export default function Landing() {
           </div>
         </div>
       </section>
-      
+
       {/* Sports Categories */}
       <section className="py-20">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-16" data-testid="heading-choose-sports">
             Choose Your Sports
           </h2>
-          
+
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-6">
             {categories.map((category) => (
               <Link key={category.slug} href={`/products?category=${category.slug}`}>
@@ -205,14 +205,14 @@ export default function Landing() {
           </div>
         </div>
       </section>
-      
+
       {/* Esports Jerseys Section */}
       <section className="py-20 bg-secondary/30">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-16" data-testid="heading-esports-jerseys">
             Customized Esports Jersey
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {esportsJerseys.map((jersey) => (
               <Card key={jersey.id} className="card-hover bg-card border border-border rounded-xl overflow-hidden group" data-testid={`esports-card-${jersey.id}`}>
@@ -265,7 +265,7 @@ export default function Landing() {
           </div>
         </div>
       </section>
-      
+
       {/* Call to Action */}
       <section className="py-20 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 text-center">
@@ -282,7 +282,7 @@ export default function Landing() {
           </Link>
         </div>
       </section>
-      
+
       <Footer />
     </div>
   );
