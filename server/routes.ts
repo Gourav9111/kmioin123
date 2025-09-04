@@ -125,22 +125,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hashedPassword = await hashPassword(userData.password);
 
       // Create user
-      const user = await storage.createUser({
+      const newUser = await storage.createUser({
         ...userData,
         password: hashedPassword,
       });
 
       // Promote to admin immediately
-      await storage.promoteToAdmin(user.id);
+      await storage.promoteToAdmin(newUser.id);
 
       res.status(201).json({
         message: "Admin account created successfully",
         user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          mobileNumber: user.mobileNumber,
+          id: newUser.id,
+          email: newUser.email,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          mobileNumber: newUser.mobileNumber,
         },
       });
     } catch (error) {
