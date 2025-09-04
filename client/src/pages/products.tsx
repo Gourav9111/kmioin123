@@ -29,6 +29,17 @@ export default function Products() {
 
   const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
     queryKey: ["/api/products", searchTerm, selectedCategory || categoryParam],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (selectedCategory || categoryParam) params.append('categoryId', selectedCategory || categoryParam);
+      
+      const response = await fetch(`/api/products?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
+      return response.json();
+    },
   });
 
   const handleSearch = (e: React.FormEvent) => {

@@ -90,19 +90,34 @@ export default function ProductCard({ product }: ProductCardProps) {
   const regularPrice = parseFloat(product.price);
   const discount = salePrice ? Math.round(((regularPrice - salePrice) / regularPrice) * 100) : 0;
 
-  const handleAddToCart = () => {
-    if (!isAuthenticated) {
-      toast({
-        title: "Login Required",
-        description: "Please login to add items to cart",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 1000);
-      return;
+  // Get fallback image based on product name or category
+  const getFallbackImage = () => {
+    const productName = product.name?.toLowerCase() || '';
+
+    if (productName.includes('biker') || productName.includes('racing') || productName.includes('kamio')) {
+      return "/src/assets/products/biker/racing-team-jacket.jpg";
     }
-    addToCartMutation.mutate();
+    if (productName.includes('esports') || productName.includes('gaming')) {
+      return "/src/assets/products/biker/esports-biker-tee.jpg";
+    }
+    if (productName.includes('stealth')) {
+      return "/src/assets/products/biker/stealth-racing-suit.jpg";
+    }
+    if (productName.includes('wings')) {
+      return "/src/assets/products/biker/kamio-wings-jersey.jpg";
+    }
+
+    // Default fallback
+    return "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=600";
+  };
+
+  const displayImage = product.imageUrl || getFallbackImage();
+
+  const handleAddToCart = () => {
+    addToCartMutation.mutate({
+      productId: product.id,
+      quantity: 1,
+    });
   };
 
   const handleAddToWishlist = () => {
@@ -142,20 +157,24 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
         <Link href={`/products/${product.slug}`}>
           <img
-            src={product.imageUrl || "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=500"}
-            alt={product.name}
+            src={displayImage}
+            alt={product.name || "Product"}
             className="w-full aspect-[4/5] object-cover group-hover:scale-105 transition-transform duration-300"
             data-testid={`img-product-${product.id}`}
+            onError={(e) => {
+              // If the image fails to load, use the absolute fallback
+              (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=600";
+            }}
           />
         </Link>
       </div>
-      <CardContent className="p-4">
+      <CardContent className="p-4 space-y-2">
         <span className="text-primary text-sm font-medium" data-testid={`category-${product.id}`}>
           Custom Jersey
         </span>
         <Link href={`/products/${product.slug}`}>
           <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors" data-testid={`title-${product.id}`}>
-            {product.name}
+            {product.name || "Custom Sports Jersey"}
           </h3>
         </Link>
         <div className="flex items-center space-x-2 mb-3">

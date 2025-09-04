@@ -179,29 +179,87 @@ export default function Landing() {
             Choose Your Sports
           </h2>
 
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-6">
-            {categories.map((category) => (
-              <Link key={category.slug} href={`/products?category=${category.slug}`}>
-                <Card className="category-hover cursor-pointer border-2 border-transparent hover:border-primary/20" data-testid={`category-card-${category.slug}`}>
-                  <CardContent className="p-0">
-                    <div className="relative overflow-hidden rounded-t-lg">
-                      <img 
-                        src={category.image}
-                        alt={category.name}
-                        className="category-image w-full h-40 object-cover"
-                        data-testid={`img-category-${category.slug}`}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                      <div className="absolute bottom-4 left-4 right-4">
-                        <h3 className="text-white font-bold text-lg" data-testid={`title-category-${category.slug}`}>
-                          {category.name}
-                        </h3>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+          {/* Categories Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+            <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-red-600 to-red-800 p-6 text-white cursor-pointer transform hover:scale-105 transition-all duration-300">
+              <div className="absolute inset-0 bg-black/20" />
+              <div className="relative z-10">
+                <h3 className="text-xl font-bold mb-2">Football Jerseys</h3>
+                <p className="text-red-100 mb-4">Professional grade football uniforms</p>
+                <Button 
+                  variant="secondary" 
+                  className="bg-white text-red-600 hover:bg-red-50"
+                  onClick={() => window.location.href = "/products?category=football"}
+                >
+                  Shop Now
+                </Button>
+              </div>
+            </div>
+
+            <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 p-6 text-white cursor-pointer transform hover:scale-105 transition-all duration-300">
+              <div className="absolute inset-0 bg-black/20" />
+              <div className="relative z-10">
+                <h3 className="text-xl font-bold mb-2">Cricket Jerseys</h3>
+                <p className="text-blue-100 mb-4">High-performance cricket uniforms</p>
+                <Button 
+                  variant="secondary" 
+                  className="bg-white text-blue-600 hover:bg-blue-50"
+                  onClick={() => window.location.href = "/products?category=cricket"}
+                >
+                  Shop Now
+                </Button>
+              </div>
+            </div>
+
+            <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-orange-600 to-orange-800 p-6 text-white cursor-pointer transform hover:scale-105 transition-all duration-300">
+              <div className="absolute inset-0 bg-black/20" />
+              <div className="relative z-10">
+                <img 
+                  src="/src/assets/products/biker/racing-team-jacket.jpg" 
+                  alt="Biker Jerseys" 
+                  className="absolute inset-0 w-full h-full object-cover opacity-30"
+                />
+                <h3 className="text-xl font-bold mb-2">Biker Jerseys</h3>
+                <p className="text-orange-100 mb-4">High-performance racing wear</p>
+                <Button 
+                  variant="secondary" 
+                  className="bg-white text-orange-600 hover:bg-orange-50"
+                  onClick={() => {
+                    // Find biker category by name since we need the ID
+                    fetch('/api/categories')
+                      .then(res => res.json())
+                      .then(categories => {
+                        const bikerCategory = categories.find((cat: any) => 
+                          cat.name.toLowerCase().includes('biker') || 
+                          cat.slug.toLowerCase().includes('biker')
+                        );
+                        if (bikerCategory) {
+                          window.location.href = `/products?category=${bikerCategory.id}`;
+                        } else {
+                          window.location.href = "/products";
+                        }
+                      });
+                  }}
+                >
+                  Shop Now
+                </Button>
+              </div>
+            </div>
+
+            <div className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-purple-600 to-purple-800 p-6 text-white cursor-pointer transform hover:scale-105 transition-all duration-300">
+              <div className="absolute inset-0 bg-black/20" />
+              <div className="relative z-10">
+                <h3 className="text-xl font-bold mb-2">Esports Jerseys</h3>
+                <p className="text-purple-100 mb-4">Gaming tournament uniforms</p>
+                <Button 
+                  variant="secondary" 
+                  className="bg-white text-purple-600 hover:bg-purple-50"
+                  onClick={() => window.location.href = "/products?category=esports"}
+                >
+                  Shop Now
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
