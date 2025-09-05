@@ -16,7 +16,7 @@ export default function ProductsPage() {
   const [sortBy, setSortBy] = useState<string>("name");
 
   // Fetch categories
-  const { data: categories = [], isLoading: categoriesLoading } = useQuery({
+  const { data: categoriesData, isLoading: categoriesLoading } = useQuery({
     queryKey: ["/api/categories"],
     queryFn: async () => {
       const response = await fetch('/api/categories');
@@ -24,13 +24,16 @@ export default function ProductsPage() {
         throw new Error('Failed to fetch categories');
       }
       const data = await response.json();
-      // Ensure we always return an array
-      return Array.isArray(data) ? data : (data?.categories ? data.categories : []);
+      console.log('Categories response:', data);
+      return data;
     },
   });
 
+  // Ensure categories is always an array
+  const categories = Array.isArray(categoriesData) ? categoriesData : [];
+
   // Fetch products with filters
-  const { data: products = [], isLoading: productsLoading } = useQuery({
+  const { data: productsData, isLoading: productsLoading } = useQuery({
     queryKey: ["/api/products", selectedCategory, searchTerm],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -46,14 +49,16 @@ export default function ProductsPage() {
         throw new Error('Failed to fetch products');
       }
       const data = await response.json();
-      // Ensure we always return an array
-      return Array.isArray(data) ? data : (data?.products ? data.products : []);
+      console.log('Products response:', data);
+      return data;
     },
   });
 
-  // Sort products - ensure products is an array
-  const safeProducts = Array.isArray(products) ? products : [];
-  const sortedProducts = safeProducts.sort((a: Product, b: Product) => {
+  // Ensure products is always an array
+  const products = Array.isArray(productsData) ? productsData : [];
+
+  // Sort products
+  const sortedProducts = [...products].sort((a: Product, b: Product) => {
     switch (sortBy) {
       case "price-low":
         return parseFloat(a.salePrice || a.price) - parseFloat(b.salePrice || b.price);
@@ -126,13 +131,11 @@ export default function ProductsPage() {
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {Array.isArray(categories) && categories.map((category: Category) => (
-                category?.id && category?.name ? (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ) : null
+              <SelectItem value="">All Categories</SelectItem>
+              {categories.map((category: Category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {category.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

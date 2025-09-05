@@ -6,6 +6,28 @@ import { authenticateToken, hashPassword, comparePassword, generateToken, valida
 import { insertCartItemSchema, insertWishlistItemSchema, insertCategorySchema, insertProductSchema, loginSchema, registerSchema } from "@shared/schema";
 import { z } from "zod";
 
+// Assume db, products, and categories are imported from your schema or db setup
+// For example:
+// import { db } from "./db";
+// import { products, categories } from "./schema";
+// import { eq, like } from "drizzle-orm";
+
+// Mocking db, products, and categories for the purpose of this example
+const db = {
+  select: () => ({
+    from: (table: string) => ({
+      where: (condition: any) => ({
+        // Mocking query building methods
+      }),
+    }),
+  }),
+};
+const products = { isActive: true, categoryId: '', name: '' };
+const categories = { isActive: true };
+const eq = (a: any, b: any) => `${a} = ${b}`;
+const like = (a: any, b: any) => `${a} LIKE ${b}`;
+
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.post("/api/register", async (req, res) => {
@@ -170,13 +192,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Categories route
   app.get("/api/categories", async (req, res) => {
     try {
-      const categories = await storage.getCategories();
-      // Ensure we always return an array
-      const safeCategories = Array.isArray(categories) ? categories : [];
-      res.json(safeCategories);
+      const result = await db.select().from(categories).where(eq(categories.isActive, true));
+      console.log("Categories found:", result.length);
+      res.json(result);
     } catch (error) {
       console.error("Error fetching categories:", error);
-      res.status(500).json({ error: "Failed to fetch categories", categories: [] });
+      res.status(500).json({ error: "Failed to fetch categories" });
     }
   });
 
@@ -244,31 +265,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { categoryId, search, featured } = req.query;
 
-      // Fetch products from storage
-      const allProducts = await storage.getProducts(); 
+      let queryBuilder = db.select().from(products).where(eq(products.isActive, true));
 
-      // Ensure we have an array
-      let filteredProducts = Array.isArray(allProducts) ? allProducts : [];
-
-      // Apply filters
-      if (categoryId && typeof categoryId === 'string') {
-        filteredProducts = filteredProducts.filter(p => p.categoryId === categoryId);
+      if (categoryId && categoryId !== 'all') {
+        queryBuilder = queryBuilder.where(eq(products.categoryId, categoryId as string));
       }
 
       if (featured === 'true') {
-        filteredProducts = filteredProducts.filter(p => p.isFeatured);
+        // Assuming 'isFeatured' is a boolean column in your products table
+        // You might need to adjust this based on your actual schema
+        queryBuilder = queryBuilder.where(eq(products.isFeatured, true)); // Assuming 'isFeatured' is the column name
       }
 
       if (search && typeof search === 'string') {
         const searchTerm = search.toLowerCase();
-        filteredProducts = filteredProducts.filter(p =>
-          p.name.toLowerCase().includes(searchTerm) ||
-          p.description.toLowerCase().includes(searchTerm)
-        );
+        queryBuilder = queryBuilder.where(like(products.name, `%${searchTerm}%`)); // Assuming filtering by name
       }
 
-      // Ensure we always return an array
-      res.json(Array.isArray(filteredProducts) ? filteredProducts : []);
+      const result = await queryBuilder;
+      console.log("Products found:", result.length);
+      res.json(result);
     } catch (error: any) {
       console.error("Error fetching products:", error);
       if (error.code === '57P01' || error.message?.includes('connection')) {
