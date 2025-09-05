@@ -171,10 +171,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/categories", async (req, res) => {
     try {
       const categories = await storage.getCategories();
-      res.json(categories);
+      // Ensure we always return an array
+      const safeCategories = Array.isArray(categories) ? categories : [];
+      res.json(safeCategories);
     } catch (error) {
       console.error("Error fetching categories:", error);
-      res.status(500).json({ error: "Failed to fetch categories" });
+      res.status(500).json({ error: "Failed to fetch categories", categories: [] });
     }
   });
 
@@ -242,16 +244,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { categoryId, search, featured } = req.query;
 
-      // Fetch categories first to use for filtering if needed
-      const categories = await storage.getCategories();
+      // Fetch products from storage
+      const allProducts = await storage.getProducts(); 
 
-      // Fetch products
-      const mockProducts = await storage.getProducts(); // Assuming storage.getProducts() fetches from DB
+      // Ensure we have an array
+      let filteredProducts = Array.isArray(allProducts) ? allProducts : [];
 
       // Apply filters
-      let filteredProducts = mockProducts;
-
-      if (categoryId) {
+      if (categoryId && typeof categoryId === 'string') {
         filteredProducts = filteredProducts.filter(p => p.categoryId === categoryId);
       }
 
@@ -259,21 +259,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         filteredProducts = filteredProducts.filter(p => p.isFeatured);
       }
 
-      if (search) {
-        const searchTerm = search.toString().toLowerCase();
+      if (search && typeof search === 'string') {
+        const searchTerm = search.toLowerCase();
         filteredProducts = filteredProducts.filter(p =>
           p.name.toLowerCase().includes(searchTerm) ||
           p.description.toLowerCase().includes(searchTerm)
         );
       }
 
-      res.json(filteredProducts);
+      // Ensure we always return an array
+      res.json(Array.isArray(filteredProducts) ? filteredProducts : []);
     } catch (error: any) {
       console.error("Error fetching products:", error);
       if (error.code === '57P01' || error.message?.includes('connection')) {
-        res.status(503).json({ message: "Database temporarily unavailable, please try again" });
+        res.status(503).json({ message: "Database temporarily unavailable, please try again", products: [] });
       } else {
-        res.status(500).json({ message: "Failed to fetch products" });
+        res.status(500).json({ message: "Failed to fetch products", products: [] });
       }
     }
   });

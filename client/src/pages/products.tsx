@@ -16,16 +16,18 @@ export default function ProductsPage() {
   const [sortBy, setSortBy] = useState<string>("name");
 
   // Fetch categories
-  const { data: categories = [], isLoading: categoriesLoading, error: categoriesError } = useQuery({
+  const { data: categoriesData, isLoading: categoriesLoading, error: categoriesError } = useQuery({
     queryKey: ["/api/categories"],
     queryFn: () => apiRequest("GET", "/api/categories"),
   });
 
-  // Ensure categories is always an array
-  const safeCategories = Array.isArray(categories) ? categories : [];
+  // Ensure categories is always an array and filter out invalid entries
+  const safeCategories = Array.isArray(categoriesData) 
+    ? categoriesData.filter((cat: Category) => cat && cat.id && cat.name) 
+    : [];
 
   // Fetch products with filters
-  const { data: products = [], isLoading: productsLoading } = useQuery({
+  const { data: productsData, isLoading: productsLoading } = useQuery({
     queryKey: ["/api/products", selectedCategory, searchTerm],
     queryFn: () => {
       const params = new URLSearchParams();
@@ -37,8 +39,13 @@ export default function ProductsPage() {
     },
   });
 
+  // Ensure products is always an array and filter out invalid entries
+  const safeProducts = Array.isArray(productsData) 
+    ? productsData.filter((product: Product) => product && product.id && product.name) 
+    : [];
+
   // Sort products
-  const sortedProducts = products.sort((a: Product, b: Product) => {
+  const sortedProducts = [...safeProducts].sort((a: Product, b: Product) => {
     switch (sortBy) {
       case "price-low":
         return parseFloat(a.salePrice || a.price) - parseFloat(b.salePrice || b.price);
