@@ -1,107 +1,115 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
-import { isUnauthorizedError } from "@/lib/authUtils";
-import { useToast } from "@/hooks/use-toast";
-import Header from "@/components/layout/header";
-import Footer from "@/components/layout/footer";
-import ProductGrid from "@/components/product/product-grid";
+import { useState } from "react";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter } from "lucide-react";
+import ProductCard from "@/components/product/product-card";
 import type { Product, Category } from "@shared/schema";
 
-export default function Products() {
-  const [location] = useLocation();
-  const { toast } = useToast();
+export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [sortBy, setSortBy] = useState("newest");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [sortBy, setSortBy] = useState<string>("name");
 
-  // Get category from URL params
-  const urlParams = new URLSearchParams(location.split('?')[1] || '');
-  const categoryParam = urlParams.get('category') || '';
-
-  const { data: allCategories = [], isLoading: categoriesLoading } = useQuery<Category[]>({
+  // Fetch categories
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery({
     queryKey: ["/api/categories"],
+    queryFn: () => apiRequest("GET", "/api/categories"),
   });
 
-  // Filter to only show the main jersey categories
-  const categories = allCategories.filter(category => 
-    ['cricket', 'esports', 'marathon'].includes(category.slug.toLowerCase())
-  );
-
-  const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
-    queryKey: ["/api/products", searchTerm, selectedCategory || categoryParam],
-    queryFn: async () => {
+  // Fetch products with filters
+  const { data: products = [], isLoading: productsLoading } = useQuery({
+    queryKey: ["/api/products", selectedCategory, searchTerm],
+    queryFn: () => {
       const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
-      if (selectedCategory || categoryParam) {
-        params.append('categoryId', selectedCategory || categoryParam);
-      }
-      
-      const response = await fetch(`/api/products?${params.toString()}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch products');
-      }
-      const data = await response.json();
-      
-      // Additional client-side filtering to ensure products match their categories
-      if (selectedCategory || categoryParam) {
-        const targetCategoryId = selectedCategory || categoryParam;
-        return data.filter((product: Product) => product.categoryId === targetCategoryId);
-      }
-      
-      return data;
+      if (selectedCategory) params.append("categoryId", selectedCategory);
+      if (searchTerm) params.append("search", searchTerm);
+
+      const queryString = params.toString();
+      return apiRequest("GET", `/api/products${queryString ? `?${queryString}` : ""}`);
     },
   });
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Search is handled by the query dependency
+  // Sort products
+  const sortedProducts = products.sort((a: Product, b: Product) => {
+    switch (sortBy) {
+      case "price-low":
+        return parseFloat(a.salePrice || a.price) - parseFloat(b.salePrice || b.price);
+      case "price-high":
+        return parseFloat(b.salePrice || b.price) - parseFloat(a.salePrice || a.price);
+      case "name":
+      default:
+        return a.name.localeCompare(b.name);
+    }
+  });
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setSelectedCategory("");
+    setSortBy("name");
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <Header />
-      
-      <div className="container mx-auto px-4 py-8">
-        {/* Page Header */}
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold mb-4">Our Products</h1>
+        <p className="text-xl text-muted-foreground">
+          Discover our collection of premium custom jerseys
+        </p>
+      </div>
+
+      {/* Category Cards */}
+      {!categoriesLoading && categories.length > 0 && (
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4" data-testid="text-products-title">
-            <span className="text-primary">CUSTOM SPORTS</span> <span className="text-foreground">JERSEYS</span>
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Discover our premium collection of customizable jerseys for all sports
-          </p>
+          <h2 className="text-2xl font-bold mb-4">Shop by Category</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {categories.map((category: Category) => (
+              <Card 
+                key={category.id} 
+                className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
+                onClick={() => setSelectedCategory(category.id)}
+              >
+                <CardContent className="p-4 text-center">
+                  <img
+                    src={category.imageUrl || "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200"}
+                    alt={category.name}
+                    className="w-full h-32 object-cover rounded-lg mb-3"
+                  />
+                  <h3 className="font-semibold text-lg">{category.name}</h3>
+                  {category.description && (
+                    <p className="text-sm text-muted-foreground mt-1">{category.description}</p>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
+      )}
 
-        {/* Filters and Search */}
-        <div className="mb-8 space-y-4 md:space-y-0 md:flex md:items-center md:gap-4">
-          {/* Search */}
-          <form onSubmit={handleSearch} className="flex-1 max-w-md" data-testid="form-search">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                type="text"
-                placeholder="Search jerseys..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-                data-testid="input-search"
-              />
-            </div>
-          </form>
+      {/* Filters */}
+      <div className="bg-card rounded-lg p-6 mb-8 border">
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
 
-          {/* Category Filter */}
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-full md:w-48" data-testid="select-category">
+            <SelectTrigger className="w-full md:w-48">
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="">All Categories</SelectItem>
-              {categories.map((category) => (
+              {categories.map((category: Category) => (
                 <SelectItem key={category.id} value={category.id}>
                   {category.name}
                 </SelectItem>
@@ -109,51 +117,100 @@ export default function Products() {
             </SelectContent>
           </Select>
 
-          {/* Sort Filter */}
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full md:w-48" data-testid="select-sort">
+            <SelectTrigger className="w-full md:w-48">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="newest">Newest First</SelectItem>
+              <SelectItem value="name">Name A-Z</SelectItem>
               <SelectItem value="price-low">Price: Low to High</SelectItem>
               <SelectItem value="price-high">Price: High to Low</SelectItem>
-              <SelectItem value="name">Name A-Z</SelectItem>
             </SelectContent>
           </Select>
-        </div>
 
-        {/* Results */}
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-muted-foreground" data-testid="text-results-count">
-            {productsLoading ? "Loading..." : `${products.length} products found`}
-          </p>
-        </div>
-
-        {/* Products Grid */}
-        {productsLoading ? (
-          <div className="flex justify-center py-12" data-testid="loading-products">
-            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-          </div>
-        ) : products.length === 0 ? (
-          <div className="text-center py-12" data-testid="no-products">
-            <p className="text-muted-foreground text-lg mb-4">No products found</p>
-            <Button 
-              onClick={() => {
-                setSearchTerm("");
-                setSelectedCategory("");
-              }}
-              data-testid="button-clear-filters"
-            >
+          {(searchTerm || selectedCategory || sortBy !== "name") && (
+            <Button variant="outline" onClick={clearFilters}>
               Clear Filters
             </Button>
-          </div>
-        ) : (
-          <ProductGrid products={products} />
-        )}
+          )}
+        </div>
       </div>
 
-      <Footer />
+      {/* Active Filters */}
+      {(searchTerm || selectedCategory) && (
+        <div className="flex flex-wrap gap-2 mb-6">
+          {searchTerm && (
+            <Badge variant="secondary" className="px-3 py-1">
+              Search: "{searchTerm}"
+              <button
+                onClick={() => setSearchTerm("")}
+                className="ml-2 hover:text-destructive"
+              >
+                ×
+              </button>
+            </Badge>
+          )}
+          {selectedCategory && (
+            <Badge variant="secondary" className="px-3 py-1">
+              Category: {categories.find((c: Category) => c.id === selectedCategory)?.name}
+              <button
+                onClick={() => setSelectedCategory("")}
+                className="ml-2 hover:text-destructive"
+              >
+                ×
+              </button>
+            </Badge>
+          )}
+        </div>
+      )}
+
+      {/* Loading State */}
+      {(productsLoading || categoriesLoading) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {[...Array(8)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <div className="bg-gray-200 aspect-[4/5] rounded-t-lg"></div>
+              <CardContent className="p-4 space-y-2">
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-8 bg-gray-200 rounded"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Products Grid */}
+      {!productsLoading && !categoriesLoading && (
+        <>
+          {sortedProducts.length > 0 ? (
+            <>
+              <div className="flex justify-between items-center mb-6">
+                <p className="text-muted-foreground">
+                  Showing {sortedProducts.length} product{sortedProducts.length !== 1 ? 's' : ''}
+                  {selectedCategory && (
+                    <span> in {categories.find((c: Category) => c.id === selectedCategory)?.name}</span>
+                  )}
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {sortedProducts.map((product: Product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">🔍</div>
+              <h3 className="text-xl font-semibold mb-2">No products found</h3>
+              <p className="text-muted-foreground mb-4">
+                Try adjusting your search or filter criteria
+              </p>
+              <Button onClick={clearFilters}>Clear All Filters</Button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

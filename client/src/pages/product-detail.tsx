@@ -1,68 +1,64 @@
-import { useState } from "react";
+import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRoute } from "wouter";
-import { isUnauthorizedError } from "@/lib/authUtils";
+import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import Header from "@/components/layout/header";
-import Footer from "@/components/layout/footer";
+import { isUnauthorizedError } from "@/lib/authUtils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Heart, ShoppingCart, Star, Truck, Shield, RotateCcw } from "lucide-react";
-import ProductCard from "@/components/product/product-card";
+import { Heart, ShoppingCart, Star, Truck, Shield, RefreshCw } from "lucide-react";
 import type { Product } from "@shared/schema";
+import { useState } from "react";
 
-export default function ProductDetail() {
-  const [match, params] = useRoute("/products/:slug");
+interface ProductDetailPageProps {
+  params: { slug: string };
+}
+
+export default function ProductDetailPage({ params }: ProductDetailPageProps) {
+  const [, setLocation] = useLocation();
+  const { isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [quantity, setQuantity] = useState(1);
-  const [selectedSize, setSelectedSize] = useState("");
-  const [selectedColor, setSelectedColor] = useState<{name: string, hex: string} | null>(null);
-  const [customization, setCustomization] = useState({
-    playerName: "",
-    playerNumber: "",
-    teamLogo: "",
-    specialInstructions: "",
+  const [selectedSize, setSelectedSize] = useState<string>("");
+  const [selectedColor, setSelectedColor] = useState<string>("");
+
+  const { data: product, isLoading, error } = useQuery({
+    queryKey: [`/api/products/${params.slug}`],
+    queryFn: () => apiRequest("GET", `/api/products/${params.slug}`),
   });
 
-  const { data: product, isLoading } = useQuery<Product>({
-    queryKey: ["/api/products", params?.slug],
-    enabled: !!params?.slug,
-  });
-
-  const { data: relatedProducts } = useQuery<Product[]>({
-    queryKey: ["/api/products", params?.slug, "related"],
-    enabled: !!params?.slug && !!product,
+  const { data: relatedProducts = [] } = useQuery({
+    queryKey: [`/api/products/${params.slug}/related`],
+    queryFn: () => apiRequest("GET", `/api/products/${params.slug}/related`),
+    enabled: !!product,
   });
 
   const addToCartMutation = useMutation({
-    mutationFn: async (data: any) => {
-      await apiRequest("POST", "/api/cart", data);
+    mutationFn: async () => {
+      await apiRequest("POST", "/api/cart", {
+        productId: product.id,
+        quantity: 1,
+        selectedSize,
+        selectedColor,
+      });
     },
     onSuccess: () => {
       toast({
         title: "Added to Cart",
-        description: "Product has been added to your cart!",
+        description: `${product.name} has been added to your cart!`,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
     },
     onError: (error: Error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
+          title: "Login Required",
+          description: "Please login to add items to cart",
           variant: "destructive",
         });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
+        setLocation("/login");
         return;
       }
       toast({
@@ -74,26 +70,26 @@ export default function ProductDetail() {
   });
 
   const addToWishlistMutation = useMutation({
-    mutationFn: async (productId: string) => {
-      await apiRequest("POST", "/api/wishlist", { productId });
+    mutationFn: async () => {
+      await apiRequest("POST", "/api/wishlist", {
+        productId: product.id,
+      });
     },
     onSuccess: () => {
       toast({
         title: "Added to Wishlist",
-        description: "Product has been added to your wishlist!",
+        description: `${product.name} has been added to your wishlist!`,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/wishlist"] });
     },
     onError: (error: Error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
+          title: "Login Required",
+          description: "Please login to add items to wishlist",
           variant: "destructive",
         });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
+        setLocation("/login");
         return;
       }
       toast({
@@ -104,51 +100,29 @@ export default function ProductDetail() {
     },
   });
 
-  const handleAddToCart = () => {
-    if (!product) return;
-
-    addToCartMutation.mutate({
-      productId: product.id,
-      quantity,
-      selectedSize,
-      selectedColor,
-      customization,
-    });
-  };
-
-  const handleAddToWishlist = () => {
-    if (!product) return;
-    addToWishlistMutation.mutate(product.id);
-  };
-
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background text-foreground">
-        <Header />
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex justify-center py-12" data-testid="loading-product">
-            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      <div className="container mx-auto px-4 py-8">
+        <div className="animate-pulse">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="bg-gray-200 aspect-square rounded-lg"></div>
+            <div className="space-y-4">
+              <div className="h-8 bg-gray-200 rounded"></div>
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+            </div>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
 
-  if (!product) {
+  if (error || !product) {
     return (
-      <div className="min-h-screen bg-background text-foreground">
-        <Header />
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center py-12" data-testid="product-not-found">
-            <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
-            <p className="text-muted-foreground mb-4">The product you're looking for doesn't exist.</p>
-            <Button onClick={() => window.location.href = "/products"} data-testid="button-back-to-products">
-              Back to Products
-            </Button>
-          </div>
-        </div>
-        <Footer />
+      <div className="container mx-auto px-4 py-8 text-center">
+        <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
+        <p className="text-muted-foreground mb-4">The product you're looking for doesn't exist.</p>
+        <Button onClick={() => setLocation("/products")}>Browse Products</Button>
       </div>
     );
   }
@@ -157,318 +131,223 @@ export default function ProductDetail() {
   const regularPrice = parseFloat(product.price);
   const discount = salePrice ? Math.round(((regularPrice - salePrice) / regularPrice) * 100) : 0;
 
+  // Handle both asset paths and external URLs
+  const getImageUrl = (imageUrl: string | null) => {
+    if (!imageUrl) return "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=600";
+
+    // If it's already a full URL, return as is
+    if (imageUrl.startsWith('http')) return imageUrl;
+
+    // If it's an asset path, return as is (Vite will handle it)
+    return imageUrl;
+  };
+
+  const displayImage = getImageUrl(product.imageUrl);
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <Header />
-      
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid md:grid-cols-2 gap-12">
-          {/* Product Images */}
-          <div className="space-y-4">
-            <div className="relative">
-              {discount > 0 && (
-                <Badge className="absolute top-4 left-4 bg-red-600 text-white z-10" data-testid="badge-discount">
-                  -{discount}%
-                </Badge>
-              )}
-              <img
-                src={product.imageUrl || "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=600"}
-                alt={product.name}
-                className="w-full h-96 object-cover rounded-lg"
-                data-testid="img-product-main"
-              />
-            </div>
-            
-            {/* Thumbnail images */}
-            {product.images && product.images.length > 0 && (
-              <div className="grid grid-cols-4 gap-2">
-                {product.images.slice(0, 4).map((image, index) => (
-                  <img
-                    key={index}
-                    src={image}
-                    alt={`${product.name} view ${index + 1}`}
-                    className="w-full h-20 object-cover rounded cursor-pointer border-2 border-transparent hover:border-primary"
-                    data-testid={`img-product-thumb-${index}`}
-                  />
-                ))}
-              </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        {/* Product Image */}
+        <div className="space-y-4">
+          <div className="relative">
+            {discount > 0 && (
+              <Badge className="absolute top-4 left-4 bg-destructive text-destructive-foreground z-10">
+                -{discount}%
+              </Badge>
+            )}
+            <img
+              src={displayImage}
+              alt={product.name}
+              className="w-full aspect-square object-cover rounded-lg"
+              onError={(e) => {
+                // If the image fails to load, use the absolute fallback
+                (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=600";
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Product Info */}
+        <div className="space-y-6">
+          <div>
+            <Badge variant="secondary" className="mb-2">
+              {product.category?.name || "Custom Jersey"}
+            </Badge>
+            <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
+            <p className="text-muted-foreground">{product.shortDescription}</p>
+          </div>
+
+          {/* Price */}
+          <div className="flex items-center space-x-3">
+            {salePrice ? (
+              <>
+                <span className="text-3xl font-bold text-primary">₹{salePrice.toFixed(2)}</span>
+                <span className="text-xl text-muted-foreground line-through">₹{regularPrice.toFixed(2)}</span>
+              </>
+            ) : (
+              <span className="text-3xl font-bold text-primary">₹{regularPrice.toFixed(2)}</span>
             )}
           </div>
 
-          {/* Product Info */}
-          <div className="space-y-6">
+          {/* Sizes */}
+          {product.availableSizes && product.availableSizes.length > 0 && (
             <div>
-              <h1 className="text-3xl font-bold mb-2" data-testid="text-product-name">{product.name}</h1>
-              <p className="text-muted-foreground" data-testid="text-product-category">
-                {product.shortDescription || "Custom Sports Jersey"}
-              </p>
-              
-              {/* Rating */}
-              <div className="flex items-center gap-2 mt-2">
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                  ))}
-                </div>
-                <span className="text-sm text-muted-foreground">(4.8) 127 reviews</span>
-              </div>
-            </div>
-
-            {/* Price */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                {salePrice ? (
-                  <>
-                    <span className="text-2xl font-bold text-primary" data-testid="text-sale-price">
-                      ₹{salePrice.toFixed(2)}
-                    </span>
-                    <span className="text-lg text-muted-foreground line-through" data-testid="text-regular-price">
-                      ₹{regularPrice.toFixed(2)}
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-2xl font-bold text-primary" data-testid="text-price">
-                    ₹{regularPrice.toFixed(2)}
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-muted-foreground">Inclusive of all taxes</p>
-            </div>
-
-            {/* Size and Color Selection */}
-            <div className="space-y-4">
-              {/* Size Selection */}
-              <div>
-                <Label>Size</Label>
-                <Select value={selectedSize} onValueChange={setSelectedSize}>
-                  <SelectTrigger className="w-full" data-testid="select-size">
-                    <SelectValue placeholder="Select size" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {product?.availableSizes?.map((size) => (
-                      <SelectItem key={size} value={size}>{size}</SelectItem>
-                    )) || ['S', 'M', 'L', 'XL', 'XXL'].map((size) => (
-                      <SelectItem key={size} value={size}>{size}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Color Selection */}
-              <div>
-                <Label>Color</Label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {(product?.availableColors || [
-                    {name: 'Red', hex: '#dc2626'},
-                    {name: 'Blue', hex: '#2563eb'},
-                    {name: 'Black', hex: '#000000'},
-                    {name: 'White', hex: '#ffffff'}
-                  ]).map((color) => (
-                    <button
-                      key={color.name}
-                      onClick={() => setSelectedColor(color)}
-                      className={`w-10 h-10 rounded-full border-2 ${
-                        selectedColor?.name === color.name ? 'border-primary ring-2 ring-primary/20' : 'border-gray-300'
-                      }`}
-                      style={{ backgroundColor: color.hex }}
-                      title={color.name}
-                      data-testid={`color-${color.name.toLowerCase()}`}
-                    />
-                  ))}
-                </div>
-                {selectedColor && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Selected: {selectedColor.name}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Customization Options */}
-            <Card className="bg-card/50">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-bold mb-4" data-testid="text-customization-title">Jersey Customization</h3>
-                
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="playerName">Player Name</Label>
-                      <Input
-                        id="playerName"
-                        placeholder="Enter name"
-                        value={customization.playerName}
-                        onChange={(e) => setCustomization(prev => ({ ...prev, playerName: e.target.value }))}
-                        data-testid="input-player-name"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="playerNumber">Player Number</Label>
-                      <Input
-                        id="playerNumber"
-                        placeholder="Enter number"
-                        value={customization.playerNumber}
-                        onChange={(e) => setCustomization(prev => ({ ...prev, playerNumber: e.target.value }))}
-                        data-testid="input-player-number"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="teamLogo">Team Logo URL (optional)</Label>
-                    <Input
-                      id="teamLogo"
-                      placeholder="Enter logo URL"
-                      value={customization.teamLogo}
-                      onChange={(e) => setCustomization(prev => ({ ...prev, teamLogo: e.target.value }))}
-                      data-testid="input-team-logo"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="instructions">Special Instructions</Label>
-                    <Textarea
-                      id="instructions"
-                      placeholder="Any special requirements..."
-                      value={customization.specialInstructions}
-                      onChange={(e) => setCustomization(prev => ({ ...prev, specialInstructions: e.target.value }))}
-                      data-testid="textarea-instructions"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Quantity and Actions */}
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="quantity">Quantity</Label>
-                <div className="flex items-center gap-2 mt-1">
-                  <Button 
-                    variant="outline" 
-                    size="icon"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    data-testid="button-quantity-decrease"
+              <h3 className="font-semibold mb-2">Available Sizes:</h3>
+              <div className="flex flex-wrap gap-2">
+                {product.availableSizes.map((size) => (
+                  <Button
+                    key={size}
+                    variant={selectedSize === size ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedSize(size)}
                   >
-                    -
+                    {size}
                   </Button>
-                  <Input
-                    id="quantity"
-                    type="number"
-                    min="1"
-                    value={quantity}
-                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-20 text-center"
-                    data-testid="input-quantity"
-                  />
-                  <Button 
-                    variant="outline" 
-                    size="icon"
-                    onClick={() => setQuantity(quantity + 1)}
-                    data-testid="button-quantity-increase"
-                  >
-                    +
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <Button 
-                  className="flex-1" 
-                  onClick={handleAddToCart}
-                  disabled={addToCartMutation.isPending}
-                  data-testid="button-add-to-cart"
-                >
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  {addToCartMutation.isPending ? "Adding..." : "Add to Cart"}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  onClick={handleAddToWishlist}
-                  disabled={addToWishlistMutation.isPending}
-                  data-testid="button-add-to-wishlist"
-                >
-                  <Heart className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <Button 
-                className="w-full bg-primary text-primary-foreground"
-                onClick={() => {
-                  handleAddToCart();
-                  setTimeout(() => window.location.href = "/cart", 1000);
-                }}
-                data-testid="button-buy-now"
-              >
-                Buy Now
-              </Button>
-            </div>
-
-            {/* Features */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 text-sm">
-                <Truck className="h-4 w-4 text-primary" />
-                <span>Free shipping on all orders</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <Shield className="h-4 w-4 text-primary" />
-                <span>Quality guarantee</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <RotateCcw className="h-4 w-4 text-primary" />
-                <span>Easy returns within 30 days</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Product Description */}
-        <Separator className="my-12" />
-        
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold" data-testid="text-description-title">Product Description</h2>
-          <div className="prose prose-invert max-w-none">
-            <p className="text-muted-foreground leading-relaxed" data-testid="text-description">
-              {product.description || `
-                Elevate your game with this premium custom sports jersey. Crafted from high-performance 
-                moisture-wicking fabric, this jersey ensures maximum comfort and durability during intense 
-                gameplay. The lightweight design allows for unrestricted movement while the breathable 
-                material keeps you cool and dry.
-
-                Features:
-                • Premium polyester blend fabric
-                • Moisture-wicking technology
-                • Lightweight and breathable
-                • Professional-grade printing
-                • Customizable with names, numbers, and logos
-                • Available in multiple sizes
-                • Machine washable
-                • Fade-resistant colors
-
-                Perfect for teams, tournaments, or casual gaming sessions. Each jersey is made to order 
-                with attention to detail and quality craftsmanship.
-              `}
-            </p>
-          </div>
-        </div>
-
-        {/* Related Products */}
-        {relatedProducts && relatedProducts.length > 0 && (
-          <>
-            <Separator className="my-12" />
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold" data-testid="text-related-products-title">Related Products</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {relatedProducts.map((relatedProduct) => (
-                  <ProductCard key={relatedProduct.id} product={relatedProduct} />
                 ))}
               </div>
             </div>
-          </>
-        )}
+          )}
+
+          {/* Colors */}
+          {product.availableColors && product.availableColors.length > 0 && (
+            <div>
+              <h3 className="font-semibold mb-2">Available Colors:</h3>
+              <div className="flex flex-wrap gap-2">
+                {product.availableColors.map((color) => (
+                  <Button
+                    key={color}
+                    variant={selectedColor === color ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedColor(color)}
+                  >
+                    {color}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Stock */}
+          <div className="flex items-center space-x-2">
+            <span className="font-semibold">Stock:</span>
+            <Badge variant={product.stock > 0 ? "default" : "destructive"}>
+              {product.stock > 0 ? `${product.stock} available` : "Out of Stock"}
+            </Badge>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex space-x-4">
+            <Button
+              onClick={() => addToCartMutation.mutate()}
+              disabled={addToCartMutation.isPending || product.stock === 0}
+              className="flex-1"
+              size="lg"
+            >
+              <ShoppingCart className="h-5 w-5 mr-2" />
+              {addToCartMutation.isPending ? "Adding..." : "Add to Cart"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => addToWishlistMutation.mutate()}
+              disabled={addToWishlistMutation.isPending}
+              size="lg"
+            >
+              <Heart className="h-5 w-5" />
+            </Button>
+          </div>
+
+          {/* Features */}
+          <div className="space-y-3 pt-6 border-t">
+            <div className="flex items-center space-x-3">
+              <Truck className="h-5 w-5 text-primary" />
+              <span className="text-sm">Free shipping on orders over ₹1000</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Shield className="h-5 w-5 text-primary" />
+              <span className="text-sm">1 year warranty</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <RefreshCw className="h-5 w-5 text-primary" />
+              <span className="text-sm">30-day return policy</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <Footer />
+      {/* Description */}
+      {product.description && (
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold mb-4">Description</h2>
+          <Card>
+            <CardContent className="p-6">
+              <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Customization Options */}
+      {product.customizationOptions && product.customizationOptions.length > 0 && (
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold mb-4">Customization Options</h2>
+          <Card>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {product.customizationOptions.map((option) => (
+                  <div key={option} className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-primary rounded-full"></span>
+                    <span className="text-sm">{option}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Related Products */}
+      {relatedProducts.length > 0 && (
+        <div>
+          <h2 className="text-2xl font-bold mb-6">You might also like</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {relatedProducts.map((relatedProduct) => (
+              <Card key={relatedProduct.id} className="card-hover bg-card border border-border rounded-xl overflow-hidden group">
+                <div className="relative">
+                  <img
+                    src={getImageUrl(relatedProduct.imageUrl)}
+                    alt={relatedProduct.name}
+                    className="w-full aspect-[4/5] object-cover group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=600";
+                    }}
+                  />
+                </div>
+                <CardContent className="p-4">
+                  <span className="text-primary text-sm font-medium">{relatedProduct.category?.name}</span>
+                  <h3 className="font-semibold text-lg mb-2">{relatedProduct.name}</h3>
+                  <div className="flex items-center space-x-2 mb-3">
+                    {relatedProduct.salePrice ? (
+                      <>
+                        <span className="text-muted-foreground line-through">₹{parseFloat(relatedProduct.price).toFixed(2)}</span>
+                        <span className="text-primary font-bold">₹{parseFloat(relatedProduct.salePrice).toFixed(2)}</span>
+                      </>
+                    ) : (
+                      <span className="text-primary font-bold">₹{parseFloat(relatedProduct.price).toFixed(2)}</span>
+                    )}
+                  </div>
+                  <Button
+                    onClick={() => setLocation(`/products/${relatedProduct.slug}`)}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    View Details
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

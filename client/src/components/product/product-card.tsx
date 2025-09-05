@@ -104,10 +104,18 @@ export default function ProductCard({ product }: ProductCardProps) {
   const displayImage = getImageUrl(product.imageUrl);
 
   const handleAddToCart = () => {
-    addToCartMutation.mutate({
-      productId: product.id,
-      quantity: 1,
-    });
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "Please login to add items to cart",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 1000);
+      return;
+    }
+    addToCartMutation.mutate();
   };
 
   const handleAddToWishlist = () => {
