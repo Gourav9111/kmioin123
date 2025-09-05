@@ -1,4 +1,3 @@
-
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
@@ -11,7 +10,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/register", async (req, res) => {
     try {
       const userData = registerSchema.parse(req.body);
-      
+
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(userData.email);
       if (existingUser) {
@@ -96,13 +95,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = (req as any).user;
       const { firstName, lastName, email, password, adminCode } = req.body;
-      
+
       // Check if current user is admin (only admins can create other admins)
       const isCurrentUserAdmin = await storage.isUserAdmin(user.id);
       if (!isCurrentUserAdmin) {
         return res.status(403).json({ message: "Admin access required to create admin accounts" });
       }
-      
+
       // Check admin creation code (you can change this to your preferred code)
       const ADMIN_CREATION_CODE = process.env.ADMIN_CREATION_CODE || "ADMIN2024";
       if (adminCode !== ADMIN_CREATION_CODE) {
@@ -117,7 +116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password,
         mobileNumber: "0000000000", // Default value for admin
       });
-      
+
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(userData.email);
       if (existingUser) {
@@ -170,10 +169,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Categories
   app.get("/api/categories", async (req, res) => {
     try {
-      const categories = await storage.getCategories();
+      const categories = await storage.getAllCategories();
       res.json(categories);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch categories" });
+    } catch (error: any) {
+      console.error("Error fetching categories:", error);
+      if (error.code === '57P01' || error.message?.includes('connection')) {
+        res.status(503).json({ message: "Database temporarily unavailable, please try again" });
+      } else {
+        res.status(500).json({ message: "Failed to fetch categories" });
+      }
     }
   });
 
@@ -246,8 +250,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isFeatured: featured === 'true' ? true : undefined,
       });
       res.json(products);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch products" });
+    } catch (error: any) {
+      console.error("Error fetching products:", error);
+      if (error.code === '57P01' || error.message?.includes('connection')) {
+        res.status(503).json({ message: "Database temporarily unavailable, please try again" });
+      } else {
+        res.status(500).json({ message: "Failed to fetch products" });
+      }
     }
   });
 
@@ -260,7 +269,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(product);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch product" });
+      console.error("Error fetching product:", error);
+      if (error.code === '57P01' || error.message?.includes('connection')) {
+        res.status(503).json({ message: "Database temporarily unavailable, please try again" });
+      } else {
+        res.status(500).json({ message: "Failed to fetch product" });
+      }
     }
   });
 
@@ -271,20 +285,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }
-      
+
       const relatedProducts = await storage.getProducts({
         categoryId: product.categoryId,
         isActive: true,
       });
-      
+
       // Filter out the current product and limit to 3
       const filtered = relatedProducts
         .filter(p => p.id !== product.id)
         .slice(0, 3);
-      
+
       res.json(filtered);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch related products" });
+      console.error("Error fetching related products:", error);
+      if (error.code === '57P01' || error.message?.includes('connection')) {
+        res.status(503).json({ message: "Database temporarily unavailable, please try again" });
+      } else {
+        res.status(500).json({ message: "Failed to fetch related products" });
+      }
     }
   });
 
@@ -304,7 +323,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create product" });
+      console.error("Error creating product:", error);
+      if (error.code === '57P01' || error.message?.includes('connection')) {
+        res.status(503).json({ message: "Database temporarily unavailable, please try again" });
+      } else {
+        res.status(500).json({ message: "Failed to create product" });
+      }
     }
   });
 
@@ -327,7 +351,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to update product" });
+      console.error("Error updating product:", error);
+      if (error.code === '57P01' || error.message?.includes('connection')) {
+        res.status(503).json({ message: "Database temporarily unavailable, please try again" });
+      } else {
+        res.status(500).json({ message: "Failed to update product" });
+      }
     }
   });
 
@@ -343,7 +372,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.deleteProduct(req.params.id);
       res.json({ message: "Product deleted successfully" });
     } catch (error) {
-      res.status(500).json({ message: "Failed to delete product" });
+      console.error("Error deleting product:", error);
+      if (error.code === '57P01' || error.message?.includes('connection')) {
+        res.status(503).json({ message: "Database temporarily unavailable, please try again" });
+      } else {
+        res.status(500).json({ message: "Failed to delete product" });
+      }
     }
   });
 
@@ -354,7 +388,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const cartItems = await storage.getCartItems(user.id);
       res.json(cartItems);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch cart items" });
+      console.error("Error fetching cart items:", error);
+      if (error.code === '57P01' || error.message?.includes('connection')) {
+        res.status(503).json({ message: "Database temporarily unavailable, please try again" });
+      } else {
+        res.status(500).json({ message: "Failed to fetch cart items" });
+      }
     }
   });
 
@@ -371,7 +410,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid cart item data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to add item to cart" });
+      console.error("Error adding item to cart:", error);
+      if (error.code === '57P01' || error.message?.includes('connection')) {
+        res.status(503).json({ message: "Database temporarily unavailable, please try again" });
+      } else {
+        res.status(500).json({ message: "Failed to add item to cart" });
+      }
     }
   });
 
@@ -379,7 +423,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { quantity } = req.body;
-      
+
       if (!quantity || quantity < 1) {
         return res.status(400).json({ message: "Invalid quantity" });
       }
@@ -388,10 +432,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!updatedItem) {
         return res.status(404).json({ message: "Cart item not found" });
       }
-      
+
       res.json(updatedItem);
     } catch (error) {
-      res.status(500).json({ message: "Failed to update cart item" });
+      console.error("Error updating cart item:", error);
+      if (error.code === '57P01' || error.message?.includes('connection')) {
+        res.status(503).json({ message: "Database temporarily unavailable, please try again" });
+      } else {
+        res.status(500).json({ message: "Failed to update cart item" });
+      }
     }
   });
 
@@ -401,7 +450,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.removeFromCart(id);
       res.json({ message: "Item removed from cart" });
     } catch (error) {
-      res.status(500).json({ message: "Failed to remove item from cart" });
+      console.error("Error removing item from cart:", error);
+      if (error.code === '57P01' || error.message?.includes('connection')) {
+        res.status(503).json({ message: "Database temporarily unavailable, please try again" });
+      } else {
+        res.status(500).json({ message: "Failed to remove item from cart" });
+      }
     }
   });
 
@@ -412,7 +466,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const wishlistItems = await storage.getWishlistItems(user.id);
       res.json(wishlistItems);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch wishlist items" });
+      console.error("Error fetching wishlist items:", error);
+      if (error.code === '57P01' || error.message?.includes('connection')) {
+        res.status(503).json({ message: "Database temporarily unavailable, please try again" });
+      } else {
+        res.status(500).json({ message: "Failed to fetch wishlist items" });
+      }
     }
   });
 
@@ -429,7 +488,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid wishlist item data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to add item to wishlist" });
+      console.error("Error adding item to wishlist:", error);
+      if (error.code === '57P01' || error.message?.includes('connection')) {
+        res.status(503).json({ message: "Database temporarily unavailable, please try again" });
+      } else {
+        res.status(500).json({ message: "Failed to add item to wishlist" });
+      }
     }
   });
 
@@ -440,7 +504,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.removeFromWishlist(user.id, productId);
       res.json({ message: "Item removed from wishlist" });
     } catch (error) {
-      res.status(500).json({ message: "Failed to remove item from wishlist" });
+      console.error("Error removing item from wishlist:", error);
+      if (error.code === '57P01' || error.message?.includes('connection')) {
+        res.status(503).json({ message: "Database temporarily unavailable, please try again" });
+      } else {
+        res.status(500).json({ message: "Failed to remove item from wishlist" });
+      }
     }
   });
 
@@ -451,7 +520,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isAdmin = await storage.isUserAdmin(user.id);
       res.json({ isAdmin });
     } catch (error) {
-      res.status(500).json({ message: "Failed to check admin status" });
+      console.error("Error checking admin status:", error);
+      if (error.code === '57P01' || error.message?.includes('connection')) {
+        res.status(503).json({ message: "Database temporarily unavailable, please try again" });
+      } else {
+        res.status(500).json({ message: "Failed to check admin status" });
+      }
     }
   });
 
@@ -459,7 +533,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = (req as any).user;
       const { userId } = req.body;
-      
+
       // Check if current user is admin
       const isCurrentUserAdmin = await storage.isUserAdmin(user.id);
       if (!isCurrentUserAdmin) {
@@ -469,7 +543,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.promoteToAdmin(userId);
       res.json({ message: "User promoted to admin" });
     } catch (error) {
-      res.status(500).json({ message: "Failed to promote user" });
+      console.error("Error promoting user:", error);
+      if (error.code === '57P01' || error.message?.includes('connection')) {
+        res.status(503).json({ message: "Database temporarily unavailable, please try again" });
+      } else {
+        res.status(500).json({ message: "Failed to promote user" });
+      }
     }
   });
 
@@ -484,7 +563,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const stats = await storage.getAdminStats();
       res.json(stats);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch admin stats" });
+      console.error("Error fetching admin stats:", error);
+      if (error.code === '57P01' || error.message?.includes('connection')) {
+        res.status(503).json({ message: "Database temporarily unavailable, please try again" });
+      } else {
+        res.status(500).json({ message: "Failed to fetch admin stats" });
+      }
     }
   });
 
