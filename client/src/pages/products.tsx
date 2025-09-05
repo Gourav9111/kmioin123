@@ -25,7 +25,8 @@ export default function ProductsPage() {
       }
       const data = await response.json();
       console.log('Categories response:', data);
-      return data;
+      // Handle both array and object responses
+      return Array.isArray(data) ? data : (data.categories || []);
     },
   });
 
@@ -50,7 +51,8 @@ export default function ProductsPage() {
       }
       const data = await response.json();
       console.log('Products response:', data);
-      return data;
+      // Handle both array and object responses
+      return Array.isArray(data) ? data : (data.products || []);
     },
   });
 

@@ -192,9 +192,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Categories route
   app.get("/api/categories", async (req, res) => {
     try {
-      const result = await db.select().from(categories).where(eq(categories.isActive, true));
-      console.log("Categories found:", result.length);
-      res.json(result);
+      const categories = await db.select().from(categories);
+      console.log('Categories found:', categories.length);
+      res.json(categories);
     } catch (error) {
       console.error("Error fetching categories:", error);
       res.status(500).json({ error: "Failed to fetch categories" });
