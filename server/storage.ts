@@ -105,13 +105,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCategories(): Promise<Category[]> {
-    return await withRetry(() =>
-      this.db
-        .select()
-        .from(categories)
-        .where(eq(categories.isActive, true))
-        .orderBy(asc(categories.name))
-    );
+    try {
+      const result = await withRetry(() =>
+        this.db
+          .select()
+          .from(categories)
+          .where(eq(categories.isActive, true))
+          .orderBy(asc(categories.name))
+      );
+      console.log("Categories fetched:", result.length, "items");
+      return Array.isArray(result) ? result : [];
+    } catch (error) {
+      console.error("Error in getCategories:", error);
+      return [];
+    }
   }
 
   async getCategoryBySlug(slug: string): Promise<Category | undefined> {
@@ -164,6 +171,7 @@ export class DatabaseStorage implements IStorage {
     isFeatured?: boolean;
   } = {}): Promise<Product[]> {
     try {
+      console.log("Getting products with filters:", filters);
       const result = await withRetry(() => {
         let query = this.db.select().from(products);
         
@@ -196,7 +204,8 @@ export class DatabaseStorage implements IStorage {
         return query.orderBy(desc(products.createdAt));
       });
       
-      return result as Product[];
+      console.log("Products fetched:", result.length, "items");
+      return Array.isArray(result) ? result : [];
     } catch (error) {
       console.error("Error in getProducts:", error);
       return [];
