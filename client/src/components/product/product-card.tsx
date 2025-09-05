@@ -97,11 +97,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     // If it's already a full URL, return as is
     if (imageUrl.startsWith('http')) return imageUrl;
     
-    // If it's an asset path, convert it properly
-    if (imageUrl.startsWith('/src/assets/')) {
-      return imageUrl.replace('/src/assets/', '/src/assets/');
-    }
-    
+    // If it's an asset path, return as is (Vite will handle it)
     return imageUrl;
   };
 
