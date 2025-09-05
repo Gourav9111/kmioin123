@@ -16,10 +16,13 @@ export default function ProductsPage() {
   const [sortBy, setSortBy] = useState<string>("name");
 
   // Fetch categories
-  const { data: categories = [], isLoading: categoriesLoading } = useQuery({
+  const { data: categories = [], isLoading: categoriesLoading, error: categoriesError } = useQuery({
     queryKey: ["/api/categories"],
     queryFn: () => apiRequest("GET", "/api/categories"),
   });
+
+  // Ensure categories is always an array
+  const safeCategories = Array.isArray(categories) ? categories : [];
 
   // Fetch products with filters
   const { data: products = [], isLoading: productsLoading } = useQuery({
@@ -63,11 +66,11 @@ export default function ProductsPage() {
       </div>
 
       {/* Category Cards */}
-      {!categoriesLoading && categories.length > 0 && (
+      {!categoriesLoading && safeCategories.length > 0 && (
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-4">Shop by Category</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            {categories.map((category: Category) => (
+            {safeCategories.map((category: Category) => (
               <Card 
                 key={category.id} 
                 className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
@@ -109,7 +112,7 @@ export default function ProductsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="">All Categories</SelectItem>
-              {categories.map((category: Category) => (
+              {safeCategories.map((category: Category) => (
                 <SelectItem key={category.id} value={category.id}>
                   {category.name}
                 </SelectItem>
@@ -152,7 +155,7 @@ export default function ProductsPage() {
           )}
           {selectedCategory && (
             <Badge variant="secondary" className="px-3 py-1">
-              Category: {categories.find((c: Category) => c.id === selectedCategory)?.name}
+              Category: {safeCategories.find((c: Category) => c.id === selectedCategory)?.name}
               <button
                 onClick={() => setSelectedCategory("")}
                 className="ml-2 hover:text-destructive"
@@ -189,7 +192,7 @@ export default function ProductsPage() {
                 <p className="text-muted-foreground">
                   Showing {sortedProducts.length} product{sortedProducts.length !== 1 ? 's' : ''}
                   {selectedCategory && (
-                    <span> in {categories.find((c: Category) => c.id === selectedCategory)?.name}</span>
+                    <span> in {safeCategories.find((c: Category) => c.id === selectedCategory)?.name}</span>
                   )}
                 </p>
               </div>
