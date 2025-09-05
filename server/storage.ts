@@ -1,7 +1,7 @@
 import { users, categories, products, cartItems, wishlistItems, adminUsers, type User, type InsertUser, type Category, type InsertCategory, type Product, type InsertProduct, type CartItem, type InsertCartItem, type WishlistItem, type InsertWishlistItem } from "@shared/schema";
 import { db, withRetry } from "./db";
 import { eq, and, desc, asc, ilike, sql } from "drizzle-orm";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import crypto from "crypto";
 
 export interface IStorage {
