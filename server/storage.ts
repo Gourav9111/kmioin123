@@ -164,35 +164,38 @@ export class DatabaseStorage implements IStorage {
     isFeatured?: boolean;
   } = {}): Promise<Product[]> {
     try {
-      let query = this.db.select().from(products);
+      const result = await withRetry(() => {
+        let query = this.db.select().from(products);
+        
+        const conditions = [];
+
+        if (filters?.isActive !== undefined) {
+          conditions.push(eq(products.isActive, filters.isActive));
+        } else {
+          conditions.push(eq(products.isActive, true));
+        }
+
+        if (filters?.categoryId) {
+          conditions.push(eq(products.categoryId, filters.categoryId));
+        }
+
+        if (filters?.isFeatured !== undefined) {
+          conditions.push(eq(products.isFeatured, filters.isFeatured));
+        }
+
+        if (filters?.search) {
+          conditions.push(
+            sql`(${ilike(products.name, `%${filters.search}%`)} OR ${ilike(products.description, `%${filters.search}%`)})`
+          );
+        }
+
+        if (conditions.length > 0) {
+          query = query.where(and(...conditions));
+        }
+
+        return query.orderBy(desc(products.createdAt));
+      });
       
-      const conditions = [];
-
-      if (filters?.isActive !== undefined) {
-        conditions.push(eq(products.isActive, filters.isActive));
-      } else {
-        conditions.push(eq(products.isActive, true));
-      }
-
-      if (filters?.categoryId) {
-        conditions.push(eq(products.categoryId, filters.categoryId));
-      }
-
-      if (filters?.isFeatured !== undefined) {
-        conditions.push(eq(products.isFeatured, filters.isFeatured));
-      }
-
-      if (filters?.search) {
-        conditions.push(
-          sql`(${ilike(products.name, `%${filters.search}%`)} OR ${ilike(products.description, `%${filters.search}%`)})`
-        );
-      }
-
-      if (conditions.length > 0) {
-        query = query.where(and(...conditions));
-      }
-
-      const result = await query.orderBy(desc(products.createdAt));
       return result as Product[];
     } catch (error) {
       console.error("Error in getProducts:", error);
