@@ -16,36 +16,44 @@ export default function ProductsPage() {
   const [sortBy, setSortBy] = useState<string>("name");
 
   // Fetch categories
-  const { data: categoriesData, isLoading: categoriesLoading, error: categoriesError } = useQuery({
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery({
     queryKey: ["/api/categories"],
-    queryFn: () => apiRequest("GET", "/api/categories"),
-  });
-
-  // Ensure categories is always an array and filter out invalid entries
-  const safeCategories = Array.isArray(categoriesData) 
-    ? categoriesData.filter((cat: Category) => cat && cat.id && cat.name) 
-    : [];
-
-  // Fetch products with filters
-  const { data: productsData, isLoading: productsLoading } = useQuery({
-    queryKey: ["/api/products", selectedCategory, searchTerm],
-    queryFn: () => {
-      const params = new URLSearchParams();
-      if (selectedCategory) params.append("categoryId", selectedCategory);
-      if (searchTerm) params.append("search", searchTerm);
-
-      const queryString = params.toString();
-      return apiRequest("GET", `/api/products${queryString ? `?${queryString}` : ""}`);
+    queryFn: async () => {
+      const response = await fetch('/api/categories');
+      if (!response.ok) {
+        throw new Error('Failed to fetch categories');
+      }
+      const data = await response.json();
+      // Ensure we always return an array
+      return Array.isArray(data) ? data : (data?.categories ? data.categories : []);
     },
   });
 
-  // Ensure products is always an array and filter out invalid entries
-  const safeProducts = Array.isArray(productsData) 
-    ? productsData.filter((product: Product) => product && product.id && product.name) 
-    : [];
+  // Fetch products with filters
+  const { data: products = [], isLoading: productsLoading } = useQuery({
+    queryKey: ["/api/products", selectedCategory, searchTerm],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (selectedCategory && selectedCategory !== 'all') {
+        params.append('categoryId', selectedCategory);
+      }
+      if (searchTerm) {
+        params.append('search', searchTerm);
+      }
 
-  // Sort products
-  const sortedProducts = [...safeProducts].sort((a: Product, b: Product) => {
+      const response = await fetch(`/api/products?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
+      const data = await response.json();
+      // Ensure we always return an array
+      return Array.isArray(data) ? data : (data?.products ? data.products : []);
+    },
+  });
+
+  // Sort products - ensure products is an array
+  const safeProducts = Array.isArray(products) ? products : [];
+  const sortedProducts = safeProducts.sort((a: Product, b: Product) => {
     switch (sortBy) {
       case "price-low":
         return parseFloat(a.salePrice || a.price) - parseFloat(b.salePrice || b.price);
@@ -73,13 +81,13 @@ export default function ProductsPage() {
       </div>
 
       {/* Category Cards */}
-      {!categoriesLoading && safeCategories.length > 0 && (
+      {!categoriesLoading && categories.length > 0 && (
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-4">Shop by Category</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            {safeCategories.map((category: Category) => (
-              <Card 
-                key={category.id} 
+            {categories.map((category: Category) => (
+              <Card
+                key={category.id}
                 className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
                 onClick={() => setSelectedCategory(category.id)}
               >
@@ -118,11 +126,13 @@ export default function ProductsPage() {
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Categories</SelectItem>
-              {safeCategories.map((category: Category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
-                </SelectItem>
+              <SelectItem value="all">All Categories</SelectItem>
+              {Array.isArray(categories) && categories.map((category: Category) => (
+                category?.id && category?.name ? (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ) : null
               ))}
             </SelectContent>
           </Select>
@@ -162,7 +172,7 @@ export default function ProductsPage() {
           )}
           {selectedCategory && (
             <Badge variant="secondary" className="px-3 py-1">
-              Category: {safeCategories.find((c: Category) => c.id === selectedCategory)?.name}
+              Category: {categories.find((c: Category) => c.id === selectedCategory)?.name}
               <button
                 onClick={() => setSelectedCategory("")}
                 className="ml-2 hover:text-destructive"
@@ -198,8 +208,8 @@ export default function ProductsPage() {
               <div className="flex justify-between items-center mb-6">
                 <p className="text-muted-foreground">
                   Showing {sortedProducts.length} product{sortedProducts.length !== 1 ? 's' : ''}
-                  {selectedCategory && (
-                    <span> in {safeCategories.find((c: Category) => c.id === selectedCategory)?.name}</span>
+                  {selectedCategory && selectedCategory !== 'all' && (
+                    <span> in {categories.find((c: Category) => c.id === selectedCategory)?.name}</span>
                   )}
                 </p>
               </div>
