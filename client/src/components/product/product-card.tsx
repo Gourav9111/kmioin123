@@ -90,7 +90,22 @@ export default function ProductCard({ product }: ProductCardProps) {
   const regularPrice = parseFloat(product.price);
   const discount = salePrice ? Math.round(((regularPrice - salePrice) / regularPrice) * 100) : 0;
 
-  const displayImage = product.imageUrl || "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=600";
+  // Handle both asset paths and external URLs
+  const getImageUrl = (imageUrl: string | null) => {
+    if (!imageUrl) return "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=600";
+    
+    // If it's already a full URL, return as is
+    if (imageUrl.startsWith('http')) return imageUrl;
+    
+    // If it's an asset path, convert it properly
+    if (imageUrl.startsWith('/src/assets/')) {
+      return imageUrl.replace('/src/assets/', '/src/assets/');
+    }
+    
+    return imageUrl;
+  };
+
+  const displayImage = getImageUrl(product.imageUrl);
 
   const handleAddToCart = () => {
     addToCartMutation.mutate({
@@ -149,7 +164,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       </div>
       <CardContent className="p-4 space-y-2">
         <span className="text-primary text-sm font-medium" data-testid={`category-${product.id}`}>
-          Custom Jersey
+          {product.category?.name || "Custom Jersey"}
         </span>
         <Link href={`/products/${product.slug}`}>
           <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors" data-testid={`title-${product.id}`}>

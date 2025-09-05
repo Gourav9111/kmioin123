@@ -513,6 +513,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug endpoint to view all products and categories
+  app.get("/api/debug/products", async (req, res) => {
+    try {
+      const allProducts = await storage.getProducts();
+      const allCategories = await storage.getAllCategories();
+      res.json({
+        categories: allCategories,
+        products: allProducts,
+        productCount: allProducts.length,
+        categoryCount: allCategories.length
+      });
+    } catch (error) {
+      console.error("Error fetching debug data:", error);
+      res.status(500).json({ message: "Failed to fetch debug data" });
+    }
+  });
+
   // Admin routes
   app.get("/api/admin/check", authenticateToken, async (req, res) => {
     try {

@@ -23,9 +23,14 @@ export default function Products() {
   const urlParams = new URLSearchParams(location.split('?')[1] || '');
   const categoryParam = urlParams.get('category') || '';
 
-  const { data: categories = [], isLoading: categoriesLoading } = useQuery<Category[]>({
+  const { data: allCategories = [], isLoading: categoriesLoading } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
+
+  // Filter to only show the main jersey categories
+  const categories = allCategories.filter(category => 
+    ['cricket', 'esports', 'marathon'].includes(category.slug.toLowerCase())
+  );
 
   const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
     queryKey: ["/api/products", searchTerm, selectedCategory || categoryParam],

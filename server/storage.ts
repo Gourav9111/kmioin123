@@ -52,18 +52,20 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  constructor(private db: any) {} // Inject db instance
+
   async getUser(id: string): Promise<User | undefined> {
-    const [user] = await withRetry(() => db.select().from(users).where(eq(users.id, id)));
+    const [user] = await withRetry(() => this.db.select().from(users).where(eq(users.id, id)));
     return user || undefined;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await withRetry(() => db.select().from(users).where(eq(users.email, email)));
+    const [user] = await withRetry(() => this.db.select().from(users).where(eq(users.email, email)));
     return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await withRetry(() => db.select().from(users).where(eq(users.username, username)));
+    const [user] = await withRetry(() => this.db.select().from(users).where(eq(users.username, username)));
     return user || undefined;
   }
 
@@ -81,9 +83,9 @@ export class DatabaseStorage implements IStorage {
     };
 
     const [createdUser] = await withRetry(() =>
-      db.insert(users).values(newUser).returning()
+      this.db.insert(users).values(newUser).returning()
     );
-    
+
     // Return user without password
     const { password, ...userWithoutPassword } = createdUser;
     return userWithoutPassword as User;
@@ -91,7 +93,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
     const [user] = await withRetry(() =>
-      db
+      this.db
         .update(users)
         .set({ ...updates, updatedAt: new Date() })
         .where(eq(users.id, id))
@@ -102,7 +104,7 @@ export class DatabaseStorage implements IStorage {
 
   async getCategories(): Promise<Category[]> {
     return await withRetry(() =>
-      db
+      this.db
         .select()
         .from(categories)
         .where(eq(categories.isActive, true))
@@ -112,7 +114,7 @@ export class DatabaseStorage implements IStorage {
 
   async getCategoryBySlug(slug: string): Promise<Category | undefined> {
     const [category] = await withRetry(() =>
-      db
+      this.db
         .select()
         .from(categories)
         .where(and(eq(categories.slug, slug), eq(categories.isActive, true)))
@@ -122,7 +124,7 @@ export class DatabaseStorage implements IStorage {
 
   async createCategory(categoryData: InsertCategory): Promise<Category> {
     const [category] = await withRetry(() =>
-      db
+      this.db
         .insert(categories)
         .values(categoryData)
         .returning()
@@ -132,7 +134,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateCategory(id: string, updates: Partial<Category>): Promise<Category | undefined> {
     const [category] = await withRetry(() =>
-      db
+      this.db
         .update(categories)
         .set(updates)
         .where(eq(categories.id, id))
@@ -143,21 +145,39 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCategory(id: string): Promise<void> {
     await withRetry(() =>
-      db
+      this.db
         .update(categories)
         .set({ isActive: false })
         .where(eq(categories.id, id))
     );
   }
 
-  async getProducts(filters?: {
+  async getProducts(filters: {
     categoryId?: string;
     search?: string;
     isActive?: boolean;
     isFeatured?: boolean;
-  }): Promise<Product[]> {
-    return await withRetry(() => {
-      let query = db.select().from(products);
+  } = {}): Promise<Product[]> {
+    let query = this.db.select({
+      id: products.id,
+      name: products.name,
+      description: products.description,
+      price: products.price,
+      salePrice: products.salePrice,
+      imageUrl: products.imageUrl,
+      slug: products.slug,
+      categoryId: products.categoryId,
+      isActive: products.isActive,
+      isFeatured: products.isFeatured,
+      stock: products.stock,
+      createdAt: products.createdAt,
+      updatedAt: products.updatedAt,
+      category: {
+        id: categories.id,
+        name: categories.name,
+        slug: categories.slug,
+      }
+    }).from(products).leftJoin(categories, eq(products.categoryId, categories.id));
       const conditions = [];
 
       if (filters?.isActive !== undefined) {
@@ -185,12 +205,11 @@ export class DatabaseStorage implements IStorage {
       }
 
       return query.orderBy(desc(products.createdAt));
-    });
   }
 
   async getProductById(id: string): Promise<Product | undefined> {
     const [product] = await withRetry(() =>
-      db
+      this.db
         .select()
         .from(products)
         .where(and(eq(products.id, id), eq(products.isActive, true)))
@@ -199,18 +218,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProductBySlug(slug: string): Promise<Product | undefined> {
-    const [product] = await withRetry(() =>
-      db
-        .select()
-        .from(products)
-        .where(and(eq(products.slug, slug), eq(products.isActive, true)))
-    );
-    return product || undefined;
+    const result = await this.db.select({
+      id: products.id,
+      name: products.name,
+      description: products.description,
+      price: products.price,
+      salePrice: products.salePrice,
+      imageUrl: products.imageUrl,
+      slug: products.slug,
+      categoryId: products.categoryId,
+      isActive: products.isActive,
+      isFeatured: products.isFeatured,
+      stock: products.stock,
+      createdAt: products.createdAt,
+      updatedAt: products.updatedAt,
+      category: {
+        id: categories.id,
+        name: categories.name,
+        slug: categories.slug,
+      }
+    }).from(products)
+      .leftJoin(categories, eq(products.categoryId, categories.id))
+      .where(eq(products.slug, slug))
+      .limit(1);
+    return result[0] || null;
   }
 
   async createProduct(productData: InsertProduct): Promise<Product> {
     const [product] = await withRetry(() =>
-      db
+      this.db
         .insert(products)
         .values(productData)
         .returning()
@@ -220,7 +256,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateProduct(id: string, updates: Partial<Product>): Promise<Product | undefined> {
     const [product] = await withRetry(() =>
-      db
+      this.db
         .update(products)
         .set(updates)
         .where(eq(products.id, id))
@@ -231,7 +267,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProduct(id: string): Promise<void> {
     await withRetry(() =>
-      db
+      this.db
         .update(products)
         .set({ isActive: false })
         .where(eq(products.id, id))
@@ -240,7 +276,7 @@ export class DatabaseStorage implements IStorage {
 
   async getCartItems(userId: string): Promise<(CartItem & { product: Product })[]> {
     return await withRetry(() =>
-      db
+      this.db
         .select({
           id: cartItems.id,
           userId: cartItems.userId,
@@ -260,7 +296,7 @@ export class DatabaseStorage implements IStorage {
   async addToCart(cartItem: InsertCartItem): Promise<CartItem> {
     // Check if item already exists in cart
     const [existingItem] = await withRetry(() =>
-      db
+      this.db
         .select()
         .from(cartItems)
         .where(
@@ -274,7 +310,7 @@ export class DatabaseStorage implements IStorage {
     if (existingItem) {
       // Update existing item quantity
       const [updatedItem] = await withRetry(() =>
-        db
+        this.db
           .update(cartItems)
           .set({ quantity: existingItem.quantity + cartItem.quantity })
           .where(eq(cartItems.id, existingItem.id))
@@ -284,7 +320,7 @@ export class DatabaseStorage implements IStorage {
     } else {
       // Add new item
       const [newItem] = await withRetry(() =>
-        db
+        this.db
           .insert(cartItems)
           .values(cartItem)
           .returning()
@@ -295,7 +331,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateCartItem(id: string, quantity: number): Promise<CartItem | undefined> {
     const [updatedItem] = await withRetry(() =>
-      db
+      this.db
         .update(cartItems)
         .set({ quantity })
         .where(eq(cartItems.id, id))
@@ -305,16 +341,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async removeFromCart(id: string): Promise<void> {
-    await withRetry(() => db.delete(cartItems).where(eq(cartItems.id, id)));
+    await withRetry(() => this.db.delete(cartItems).where(eq(cartItems.id, id)));
   }
 
   async clearCart(userId: string): Promise<void> {
-    await withRetry(() => db.delete(cartItems).where(eq(cartItems.userId, userId)));
+    await withRetry(() => this.db.delete(cartItems).where(eq(cartItems.userId, userId)));
   }
 
   async getWishlistItems(userId: string): Promise<(WishlistItem & { product: Product })[]> {
     return await withRetry(() =>
-      db
+      this.db
         .select({
           id: wishlistItems.id,
           userId: wishlistItems.userId,
@@ -331,7 +367,7 @@ export class DatabaseStorage implements IStorage {
 
   async addToWishlist(wishlistItem: InsertWishlistItem): Promise<WishlistItem> {
     const [newItem] = await withRetry(() =>
-      db
+      this.db
         .insert(wishlistItems)
         .values(wishlistItem)
         .returning()
@@ -341,7 +377,7 @@ export class DatabaseStorage implements IStorage {
 
   async removeFromWishlist(userId: string, productId: string): Promise<void> {
     await withRetry(() =>
-      db
+      this.db
         .delete(wishlistItems)
         .where(and(eq(wishlistItems.userId, userId), eq(wishlistItems.productId, productId)))
     );
@@ -349,7 +385,7 @@ export class DatabaseStorage implements IStorage {
 
   async isUserAdmin(userId: string): Promise<boolean> {
     const [adminUser] = await withRetry(() =>
-      db
+      this.db
         .select()
         .from(adminUsers)
         .where(and(eq(adminUsers.userId, userId), eq(adminUsers.isActive, true)))
@@ -359,7 +395,7 @@ export class DatabaseStorage implements IStorage {
 
   async promoteToAdmin(userId: string): Promise<void> {
     await withRetry(() =>
-      db
+      this.db
         .insert(adminUsers)
         .values({ userId })
         .onConflictDoUpdate({
@@ -371,9 +407,9 @@ export class DatabaseStorage implements IStorage {
 
   async getAdminStats(): Promise<{ totalUsers: number; totalProducts: number; totalCategories: number }> {
     const [totalUsers, totalProducts, totalCategories] = await Promise.all([
-      withRetry(() => db.select({ count: sql<number>`count(*)` }).from(users)),
-      withRetry(() => db.select({ count: sql<number>`count(*)` }).from(products)),
-      withRetry(() => db.select({ count: sql<number>`count(*)` }).from(categories)),
+      withRetry(() => this.db.select({ count: sql<number>`count(*)` }).from(users)),
+      withRetry(() => this.db.select({ count: sql<number>`count(*)` }).from(products)),
+      withRetry(() => this.db.select({ count: sql<number>`count(*)` }).from(categories)),
     ]);
 
     return {
@@ -384,8 +420,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllUsers(): Promise<User[]> {
-    return withRetry(() => db.select().from(users));
+    return withRetry(() => this.db.select().from(users));
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = new DatabaseStorage(db);
