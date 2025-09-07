@@ -56,7 +56,7 @@ export default function AdminLogin() {
         title: "Login Successful",
         description: "Welcome to the admin panel!",
       });
-      navigate("/admin/dashboard");
+      navigate("/admin");
     },
     onError: (error: Error) => {
       toast({
