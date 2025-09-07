@@ -61,15 +61,16 @@ if (process.env.NODE_ENV === 'production') {
   // Development: Serve frontend via Vite
   const { createServer } = require('vite');
   const fs = require('fs');
-  const path = require('path');
   
   const setupVite = async () => {
     try {
       const vite = await createServer({
         server: { 
           middlewareMode: true,
-          host: '0.0.0.0',
-          allowedHosts: 'all'
+          hmr: {
+            port: 24678,
+            host: '0.0.0.0'
+          }
         },
         appType: 'spa',
         root: path.join(__dirname, '../client'),
@@ -80,6 +81,9 @@ if (process.env.NODE_ENV === 'production') {
             "@assets": path.resolve(__dirname, "../attached_assets"),
           },
         },
+        define: {
+          'process.env.NODE_ENV': '"development"'
+        }
       });
       
       app.use(vite.middlewares);
@@ -87,8 +91,8 @@ if (process.env.NODE_ENV === 'production') {
       app.use('*', async (req, res, next) => {
         const url = req.originalUrl;
         
-        // Skip API routes
-        if (url.startsWith('/api')) {
+        // Skip API routes and static assets
+        if (url.startsWith('/api') || url.startsWith('/uploads')) {
           return next();
         }
         
@@ -104,10 +108,13 @@ if (process.env.NODE_ENV === 'production') {
           
           res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
         } catch (e) {
+          console.error('Vite transform error:', e);
           vite.ssrFixStacktrace(e);
           next(e);
         }
       });
+      
+      console.log('Vite dev server middleware setup complete');
     } catch (error) {
       console.error('Failed to setup Vite:', error);
     }
