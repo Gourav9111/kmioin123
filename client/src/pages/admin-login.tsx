@@ -56,8 +56,8 @@ export default function AdminLogin() {
         title: "Login Successful",
         description: "Welcome to the admin panel!",
       });
-      // Use navigate instead of window.location for better SPA behavior
-      navigate("/admin");
+      // Force a page reload to ensure auth state is updated properly
+      window.location.href = "/admin";
     },
     onError: (error: Error) => {
       toast({

@@ -50,13 +50,13 @@ export default function AdminPanel() {
 
   // Handle authentication redirect properly
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated && !isLoading) {
       navigate("/admin-login");
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isLoading, navigate]);
 
   // Show loading while checking authentication
-  if (!isAuthenticated) {
+  if (isLoading || !isAuthenticated) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Card>
