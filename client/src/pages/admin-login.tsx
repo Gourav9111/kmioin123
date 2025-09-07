@@ -50,14 +50,14 @@ export default function AdminLogin() {
       return response.json();
     },
     onSuccess: (data) => {
-      // Store admin token (using same token storage as regular users for now)
-      localStorage.setItem("token", data.token);
+      // Store admin token using the same key as regular auth
+      localStorage.setItem("authToken", data.token);
       toast({
         title: "Login Successful",
         description: "Welcome to the admin panel!",
       });
-      // Force a page refresh to ensure proper authentication state
-      window.location.href = "/admin";
+      // Use navigate instead of window.location for better SPA behavior
+      navigate("/admin");
     },
     onError: (error: Error) => {
       toast({

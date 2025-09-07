@@ -48,10 +48,26 @@ export default function AdminPanel() {
 
   const isAdmin = adminCheck?.isAdmin;
 
-  // Redirect if not authenticated
+  // Handle authentication redirect properly
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/admin-login");
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Show loading while checking authentication
   if (!isAuthenticated) {
-    navigate("/admin-login");
-    return null;
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex justify-center">
+              <div className="animate-spin w-6 h-6 border-4 border-primary border-t-transparent rounded-full" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (adminCheckLoading) {
