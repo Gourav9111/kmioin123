@@ -11,6 +11,7 @@ import Wishlist from "@/pages/wishlist";
 import Landing from "@/pages/landing";
 import NotFound from "@/pages/not-found";
 import AdminPanel from "@/pages/admin";
+import AdminLogin from "@/pages/admin-login";
 import LoginPage from "@/pages/login";
 import RegisterPage from "@/pages/register";
 import AdminSignup from "@/pages/admin-signup";
@@ -27,7 +28,8 @@ function App() {
         <Route path="/wishlist" component={Wishlist} />
         <Route path="/login" component={LoginPage} />
         <Route path="/register" component={RegisterPage} />
-        <Route path="/admin" component={AdminPanel} />
+        <Route path="/admin" component={AdminLogin} />
+        <Route path="/admin/dashboard" component={AdminPanel} />
         <Route path="/admin-signup" component={AdminSignup} />
         <Route component={NotFound} />
       </Switch>

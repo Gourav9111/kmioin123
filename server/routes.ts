@@ -72,6 +72,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin login route - separate from regular user login
+  app.post("/api/admin/login", async (req, res) => {
+    try {
+      const { email, password } = loginSchema.parse(req.body);
+
+      // Find user by email
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(401).json({ message: "Invalid admin credentials" });
+      }
+
+      // Check if user is admin
+      const isAdmin = await storage.isUserAdmin(user.id);
+      if (!isAdmin) {
+        return res.status(401).json({ message: "Admin access required" });
+      }
+
+      // Check password
+      const isValidPassword = await comparePassword(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "Invalid admin credentials" });
+      }
+
+      // Generate token
+      const token = generateToken(user.id);
+
+      res.json({
+        message: "Admin login successful",
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          mobileNumber: user.mobileNumber,
+        },
+        token,
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      console.error("Admin login error:", error);
+      res.status(500).json({ message: "Admin login failed" });
+    }
+  });
+
   app.post("/api/login", async (req, res) => {
     try {
       const { email, password } = loginSchema.parse(req.body);
