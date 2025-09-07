@@ -28,15 +28,16 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 // MongoDB connection
 const connectDB = async () => {
   try {
-    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/kamio_jerseys';
-    await mongoose.connect(mongoURI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const mongoURI = process.env.MONGODB_URI;
+    if (!mongoURI) {
+      console.log('MongoDB URI not provided, skipping database connection');
+      return;
+    }
+    await mongoose.connect(mongoURI);
     console.log('MongoDB connected successfully');
   } catch (error) {
     console.error('MongoDB connection failed:', error);
-    process.exit(1);
+    console.log('Continuing without database connection...');
   }
 };
 
@@ -59,40 +60,41 @@ if (process.env.NODE_ENV === 'production') {
 } else {
   // Development: Serve frontend via Vite
   const { createServer } = require('vite');
+  const fs = require('fs');
+  const path = require('path');
   
   const setupVite = async () => {
-    const vite = await createServer({
-      server: { middlewareMode: true },
-      appType: 'custom'
-    });
-    
-    app.use(vite.middlewares);
-    
-    app.use('*', async (req, res, next) => {
-      const url = req.originalUrl;
+    try {
+      const vite = await createServer({
+        server: { middlewareMode: true },
+        appType: 'spa',
+        root: path.join(__dirname, '../client')
+      });
       
-      try {
-        const template = await vite.transformIndexHtml(url, `
-          <!DOCTYPE html>
-          <html lang="en">
-            <head>
-              <meta charset="UTF-8" />
-              <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-              <title>KAMIO Custom Jerseys</title>
-            </head>
-            <body>
-              <div id="root"></div>
-              <script type="module" src="/src/main.tsx"></script>
-            </body>
-          </html>
-        `);
+      app.use(vite.middlewares);
+      
+      app.use('*', async (req, res, next) => {
+        const url = req.originalUrl;
         
-        res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
-      } catch (e) {
-        vite.ssrFixStacktrace(e);
-        next(e);
-      }
-    });
+        try {
+          // Read the index.html template
+          let template = fs.readFileSync(
+            path.resolve(__dirname, '../client/index.html'),
+            'utf-8'
+          );
+          
+          // Transform the template using Vite
+          template = await vite.transformIndexHtml(url, template);
+          
+          res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
+        } catch (e) {
+          vite.ssrFixStacktrace(e);
+          next(e);
+        }
+      });
+    } catch (error) {
+      console.error('Failed to setup Vite:', error);
+    }
   };
   
   setupVite();
@@ -106,5 +108,5 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
 });
