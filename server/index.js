@@ -88,7 +88,8 @@ if (process.env.NODE_ENV === 'production') {
       
       app.use(vite.middlewares);
       
-      app.use('*', async (req, res, next) => {
+      // Handle all non-API routes with React app
+      app.get('*', async (req, res, next) => {
         const url = req.originalUrl;
         
         // Skip API routes and static assets
@@ -106,7 +107,7 @@ if (process.env.NODE_ENV === 'production') {
           // Transform the template using Vite
           template = await vite.transformIndexHtml(url, template);
           
-          res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
+          res.status(200).set({ 'Content-Type': 'text/html' }).send(template);
         } catch (e) {
           console.error('Vite transform error:', e);
           vite.ssrFixStacktrace(e);
