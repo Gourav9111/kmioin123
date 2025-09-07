@@ -12,9 +12,10 @@ import Landing from "@/pages/landing";
 import NotFound from "@/pages/not-found";
 import AdminPanel from "@/pages/admin";
 import AdminLogin from "@/pages/admin-login";
-import LoginPage from "@/pages/login";
+import LoginPage from "@/pages/Login";
 import RegisterPage from "@/pages/register";
 import AdminSignup from "@/pages/admin-signup";
+import AdminDashboard from "@/pages/admin/Dashboard";
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
         <Route path="/login" component={LoginPage} />
         <Route path="/register" component={RegisterPage} />
         <Route path="/admin-login" component={AdminLogin} />
+        <Route path="/admin/dashboard" component={AdminDashboard} />
         <Route path="/admin" component={AdminPanel} />
         <Route path="/admin-signup" component={AdminSignup} />
         <Route component={NotFound} />
