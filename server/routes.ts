@@ -1,31 +1,12 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { pool } from "./db";
+import { db } from "./db";
 import { authenticateToken, hashPassword, comparePassword, generateToken, validateEmail, validateMobileNumber, validatePassword } from "./auth";
 import { insertCartItemSchema, insertWishlistItemSchema, insertCategorySchema, insertProductSchema, loginSchema, registerSchema } from "@shared/schema";
+import { products, categories } from "@shared/schema";
+import { eq, like } from "drizzle-orm";
 import { z } from "zod";
-
-// Assume db, products, and categories are imported from your schema or db setup
-// For example:
-// import { db } from "./db";
-// import { products, categories } from "./schema";
-// import { eq, like } from "drizzle-orm";
-
-// Mocking db, products, and categories for the purpose of this example
-const db = {
-  select: () => ({
-    from: (table: string) => ({
-      where: (condition: any) => ({
-        // Mocking query building methods
-      }),
-    }),
-  }),
-};
-const products = { isActive: true, categoryId: '', name: '' };
-const categories = { isActive: true };
-const eq = (a: any, b: any) => `${a} = ${b}`;
-const like = (a: any, b: any) => `${a} LIKE ${b}`;
 
 
 export async function registerRoutes(app: Express): Promise<Server> {

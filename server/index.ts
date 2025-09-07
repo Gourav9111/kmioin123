@@ -40,20 +40,16 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
-  // Apply authentication middleware to all routes that require it.
-  // Exclude login routes from authentication since users need to login first
-  app.use('/api', (req, res, next) => {
-    // Skip authentication for login/register routes
-    const publicRoutes = ['/api/login', '/api/register', '/api/admin/login', '/api/categories', '/api/products'];
-    const isPublicRoute = publicRoutes.some(route => req.path.startsWith(route));
-    
-    if (isPublicRoute) {
-      return next();
-    }
-    
-    // Apply authentication for all other routes
-    return authenticateToken(req, res, next);
-  });
+  // Apply authentication middleware to protected routes only
+  app.use('/api/user', authenticateToken);
+  app.use('/api/cart', authenticateToken);
+  app.use('/api/wishlist', authenticateToken);
+  app.use('/api/admin/check', authenticateToken);
+  app.use('/api/admin/promote', authenticateToken);
+  app.use('/api/admin/stats', authenticateToken);
+  app.use('/api/admin/create', authenticateToken);
+  app.use('/api/admin/categories', authenticateToken);
+  app.use('/api/admin/products', authenticateToken);
 
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
