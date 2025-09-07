@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Edit, Trash2, Plus, Upload } from "lucide-react";
 import type { Category, Product } from "@shared/schema";
 
@@ -48,9 +48,14 @@ export default function AdminPanel() {
 
   const isAdmin = adminCheck?.isAdmin;
 
+  // Handle navigation in useEffect to avoid React warnings
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/admin-login");
+    }
+  }, [isAuthenticated, navigate]);
+
   if (!isAuthenticated) {
-    // If not authenticated as regular user, redirect to admin login
-    navigate("/admin-login");
     return null;
   }
 
