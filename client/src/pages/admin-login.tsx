@@ -50,8 +50,8 @@ export default function AdminLogin() {
       return response.json();
     },
     onSuccess: (data) => {
-      // Store admin token
-      localStorage.setItem("adminToken", data.token);
+      // Store admin token (using same token storage as regular users for now)
+      localStorage.setItem("token", data.token);
       toast({
         title: "Login Successful",
         description: "Welcome to the admin panel!",
