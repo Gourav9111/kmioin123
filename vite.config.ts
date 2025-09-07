@@ -2,15 +2,22 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig(async ({ mode }) => {
-  const plugins = [react(), runtimeErrorOverlay()];
+  const plugins = [react()];
   
-  // Only add cartographer in development and when in Replit
-  if (mode !== "production" && process.env.REPL_ID !== undefined) {
-    const { cartographer } = await import("@replit/vite-plugin-cartographer");
-    plugins.push(cartographer());
+  // Dynamically import ESM modules
+  try {
+    const { default: runtimeErrorOverlay } = await import("@replit/vite-plugin-runtime-error-modal");
+    plugins.push(runtimeErrorOverlay());
+    
+    // Only add cartographer in development and when in Replit
+    if (mode !== "production" && process.env.REPL_ID !== undefined) {
+      const { cartographer } = await import("@replit/vite-plugin-cartographer");
+      plugins.push(cartographer());
+    }
+  } catch (error) {
+    console.warn("Could not load Replit plugins:", error.message);
   }
 
   return {
