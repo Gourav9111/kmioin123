@@ -64,12 +64,7 @@ if (process.env.NODE_ENV === 'production') {
   
   const setupVite = async () => {
     try {
-      // Import the vite config to ensure consistency
-      const { default: viteConfig } = await import('../vite.config.ts');
-      const config = await viteConfig({ mode: 'development', command: 'serve' });
-      
       const vite = await createServer({
-        ...config,
         server: { 
           middlewareMode: true,
           hmr: {
@@ -77,7 +72,18 @@ if (process.env.NODE_ENV === 'production') {
             host: '0.0.0.0'
           }
         },
-        appType: 'spa'
+        appType: 'spa',
+        root: path.join(__dirname, '../client'),
+        resolve: {
+          alias: {
+            "@": path.resolve(__dirname, "../client/src"),
+            "@shared": path.resolve(__dirname, "../shared"),
+            "@assets": path.resolve(__dirname, "../attached_assets"),
+          },
+        },
+        define: {
+          'process.env.NODE_ENV': '"development"'
+        }
       });
       
       app.use(vite.middlewares);
