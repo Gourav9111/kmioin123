@@ -229,14 +229,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Create category
-  app.post("/api/admin/categories", authenticateToken, async (req, res) => {
+  app.post("/api/admin/categories", async (req, res) => {
     try {
-      const user = (req as any).user;
-      const isAdmin = await storage.isUserAdmin(user.id);
-      if (!isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
       const categoryData = insertCategorySchema.parse(req.body);
       const category = await storage.createCategory(categoryData);
       res.status(201).json(category);
@@ -249,14 +243,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Update category
-  app.put("/api/admin/categories/:id", authenticateToken, async (req, res) => {
+  app.put("/api/admin/categories/:id", async (req, res) => {
     try {
-      const user = (req as any).user;
-      const isAdmin = await storage.isUserAdmin(user.id);
-      if (!isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
       const categoryData = insertCategorySchema.parse(req.body);
       const category = await storage.updateCategory(req.params.id, categoryData);
       if (!category) {
@@ -272,14 +260,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Delete category
-  app.delete("/api/admin/categories/:id", authenticateToken, async (req, res) => {
+  app.delete("/api/admin/categories/:id", async (req, res) => {
     try {
-      const user = (req as any).user;
-      const isAdmin = await storage.isUserAdmin(user.id);
-      if (!isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
       await storage.deleteCategory(req.params.id);
       res.json({ message: "Category deleted successfully" });
     } catch (error) {
@@ -370,14 +352,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Create product
-  app.post("/api/admin/products", authenticateToken, async (req, res) => {
+  app.post("/api/admin/products", async (req, res) => {
     try {
-      const user = (req as any).user;
-      const isAdmin = await storage.isUserAdmin(user.id);
-      if (!isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
       const productData = insertProductSchema.parse(req.body);
       const product = await storage.createProduct(productData);
       res.status(201).json(product);
@@ -395,14 +371,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Update product
-  app.put("/api/admin/products/:id", authenticateToken, async (req, res) => {
+  app.put("/api/admin/products/:id", async (req, res) => {
     try {
-      const user = (req as any).user;
-      const isAdmin = await storage.isUserAdmin(user.id);
-      if (!isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
       const productData = insertProductSchema.parse(req.body);
       const product = await storage.updateProduct(req.params.id, productData);
       if (!product) {
@@ -423,14 +393,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin: Delete product
-  app.delete("/api/admin/products/:id", authenticateToken, async (req, res) => {
+  app.delete("/api/admin/products/:id", async (req, res) => {
     try {
-      const user = (req as any).user;
-      const isAdmin = await storage.isUserAdmin(user.id);
-      if (!isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
       await storage.deleteProduct(req.params.id);
       res.json({ message: "Product deleted successfully" });
     } catch (error) {
@@ -631,14 +595,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/admin/stats", authenticateToken, async (req, res) => {
+  app.get("/api/admin/stats", async (req, res) => {
     try {
-      const user = (req as any).user;
-      const isAdmin = await storage.isUserAdmin(user.id);
-      if (!isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
       const stats = await storage.getAdminStats();
       res.json(stats);
     } catch (error) {

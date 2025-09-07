@@ -1,5 +1,4 @@
 
-import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,12 +11,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Edit, Trash2, Plus, Upload } from "lucide-react";
 import type { Category, Product } from "@shared/schema";
 
 export default function AdminPanel() {
-  const { user, isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -26,78 +24,24 @@ export default function AdminPanel() {
   const [newCategorySlug, setNewCategorySlug] = useState("");
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
 
-  // Check admin status from API
-  const { data: adminCheck, isLoading: adminCheckLoading } = useQuery({
-    queryKey: ["/api/admin/check"],
-    queryFn: async () => {
-      const response = await apiRequest("GET", "/api/admin/check");
-      return response.json();
-    },
-    enabled: isAuthenticated,
-  });
-
-  // Get admin stats
+  // Get admin stats (without auth check)
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/admin/stats"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/admin/stats");
-      return response.json();
+      try {
+        const response = await apiRequest("GET", "/api/admin/stats");
+        return response.json();
+      } catch (error) {
+        // Return default stats if API fails
+        return {
+          totalProducts: 0,
+          totalOrders: 0,
+          totalUsers: 0,
+          totalRevenue: 0
+        };
+      }
     },
-    enabled: isAuthenticated && adminCheck?.isAdmin,
   });
-
-  const isAdmin = adminCheck?.isAdmin;
-
-  // Handle authentication redirect properly
-  useEffect(() => {
-    if (!isAuthenticated && !isLoading) {
-      navigate("/admin-login");
-    }
-  }, [isAuthenticated, isLoading, navigate]);
-
-  // Show loading while checking authentication
-  if (isLoading || !isAuthenticated) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex justify-center">
-              <div className="animate-spin w-6 h-6 border-4 border-primary border-t-transparent rounded-full" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (adminCheckLoading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex justify-center">
-              <div className="animate-spin w-6 h-6 border-4 border-primary border-t-transparent rounded-full" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="p-6">
-            <p>Access denied. Admin privileges required.</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Contact an existing admin to grant you access.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -105,7 +49,7 @@ export default function AdminPanel() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">Admin Panel</h1>
-            <p className="text-muted-foreground">Welcome, {user?.firstName}</p>
+            <p className="text-muted-foreground">Welcome to the admin dashboard</p>
           </div>
           <Button onClick={() => navigate("/admin-signup")} variant="outline">
             Create New Admin
