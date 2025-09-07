@@ -86,9 +86,7 @@ if (process.env.NODE_ENV === 'production') {
         }
       });
       
-      app.use(vite.middlewares);
-      
-      // Handle all non-API routes with React app
+      // Handle all non-API routes with React app BEFORE Vite middleware
       app.get('*', async (req, res, next) => {
         const url = req.originalUrl;
         
@@ -114,6 +112,8 @@ if (process.env.NODE_ENV === 'production') {
           next(e);
         }
       });
+      
+      app.use(vite.middlewares);
       
       console.log('Vite dev server middleware setup complete');
     } catch (error) {
