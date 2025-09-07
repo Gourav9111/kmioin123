@@ -56,7 +56,8 @@ export default function AdminLogin() {
         title: "Login Successful",
         description: "Welcome to the admin panel!",
       });
-      navigate("/admin");
+      // Force a page refresh to ensure proper authentication state
+      window.location.href = "/admin";
     },
     onError: (error: Error) => {
       toast({

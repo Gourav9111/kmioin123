@@ -48,14 +48,9 @@ export default function AdminPanel() {
 
   const isAdmin = adminCheck?.isAdmin;
 
-  // Handle navigation in useEffect to avoid React warnings
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/admin-login");
-    }
-  }, [isAuthenticated, navigate]);
-
+  // Redirect if not authenticated
   if (!isAuthenticated) {
+    navigate("/admin-login");
     return null;
   }
 
