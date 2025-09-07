@@ -3,11 +3,12 @@ import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
 import * as schema from "@shared/schema";
 
-// Configure WebSocket with SSL disabled for development
+// Configure WebSocket with better error handling for development
 neonConfig.webSocketConstructor = ws;
 neonConfig.pipelineConnect = false;
-neonConfig.useSecureWebSocket = false;
-neonConfig.pipelineTLS = false;
+neonConfig.useSecureWebSocket = true;
+neonConfig.pipelineTLS = true;
+neonConfig.poolQueryViaFetch = true;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -15,19 +16,21 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Create pool with SSL disabled for development
-const connectionString = process.env.DATABASE_URL.replace('sslmode=require', 'sslmode=disable');
+// Create pool with improved connection handling
+const connectionString = process.env.DATABASE_URL;
 export const pool = new Pool({ 
   connectionString: connectionString,
-  ssl: false
+  max: 5,
+  idleTimeoutMillis: 20000,
+  connectionTimeoutMillis: 5000,
 });
 export const db = drizzle({ client: pool, schema });
 
 // Retry function for database operations
 export async function withRetry<T>(
   operation: () => Promise<T>,
-  maxRetries: number = 3,
-  delayMs: number = 1000
+  maxRetries: number = 2,
+  delayMs: number = 500
 ): Promise<T> {
   let lastError: Error;
   
