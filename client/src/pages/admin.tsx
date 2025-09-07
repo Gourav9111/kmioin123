@@ -49,15 +49,9 @@ export default function AdminPanel() {
   const isAdmin = adminCheck?.isAdmin;
 
   if (!isAuthenticated) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardContent className="p-6">
-            <p>Please log in to access the admin panel.</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    // If not authenticated as regular user, redirect to admin login
+    navigate("/admin-login");
+    return null;
   }
 
   if (adminCheckLoading) {
