@@ -28,8 +28,8 @@ function App() {
         <Route path="/wishlist" component={Wishlist} />
         <Route path="/login" component={LoginPage} />
         <Route path="/register" component={RegisterPage} />
-        <Route path="/admin" component={AdminLogin} />
-        <Route path="/admin/dashboard" component={AdminPanel} />
+        <Route path="/admin-login" component={AdminLogin} />
+        <Route path="/admin" component={AdminPanel} />
         <Route path="/admin-signup" component={AdminSignup} />
         <Route component={NotFound} />
       </Switch>
