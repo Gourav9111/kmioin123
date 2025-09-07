@@ -66,15 +66,31 @@ if (process.env.NODE_ENV === 'production') {
   const setupVite = async () => {
     try {
       const vite = await createServer({
-        server: { middlewareMode: true },
+        server: { 
+          middlewareMode: true,
+          host: '0.0.0.0',
+          allowedHosts: 'all'
+        },
         appType: 'spa',
-        root: path.join(__dirname, '../client')
+        root: path.join(__dirname, '../client'),
+        resolve: {
+          alias: {
+            "@": path.resolve(__dirname, "../client/src"),
+            "@shared": path.resolve(__dirname, "../shared"),
+            "@assets": path.resolve(__dirname, "../attached_assets"),
+          },
+        },
       });
       
       app.use(vite.middlewares);
       
       app.use('*', async (req, res, next) => {
         const url = req.originalUrl;
+        
+        // Skip API routes
+        if (url.startsWith('/api')) {
+          return next();
+        }
         
         try {
           // Read the index.html template
